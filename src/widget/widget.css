@@ -43,7 +43,7 @@ button, input, select {
   font-family: inherit; font-size: 13px; color: var(--fg);
   border: none; background: none; outline: none;
 }
-button { cursor: pointer; }
+button { cursor: pointer; appearance: none; -webkit-appearance: none; background-image: none; }
 
 /* ── 统一记账块 ── */
 .bill-shell { min-width: 0; }
@@ -70,7 +70,7 @@ body[data-view="flow"] #app { height: 100%; }
 }
 .tab-group { display: flex; align-items: center; flex-wrap: wrap; gap: 4px; min-width: 0; flex: 0 0 auto; }
 .tab-group button {
-  height: 26px; padding: 0 10px; border-radius: 6px; color: var(--fg-soft);
+  height: 26px; padding: 0 10px; border: 1px solid transparent; border-radius: 6px; color: var(--fg-soft);
   font-size: 12px; white-space: nowrap; transition: background .12s, color .12s, box-shadow .12s;
 }
 .tab-group button:hover { background: var(--hover); color: var(--fg); }
@@ -199,7 +199,7 @@ body[data-view="flow"] #app { height: 100%; }
 .nav { display: flex; align-items: center; gap: 2px; }
 .nav-label { font-size: 14px; font-weight: 500; min-width: 96px; text-align: center; white-space: nowrap; }
 .anchor-label {
-  min-width: 132px; height: 26px; padding: 0 10px; border-radius: 6px;
+  min-width: 132px; height: 26px; padding: 0 10px; border: 1px solid transparent; border-radius: 6px;
   font-size: 13px; font-weight: 500; color: var(--fg-soft); white-space: nowrap;
   transition: background .12s, color .12s, box-shadow .12s;
 }
@@ -257,9 +257,11 @@ body:hover .icon-btn { opacity: 1; }
 
 /* 日期步进器：‹ 日期 › 📅 */
 .q-date-group { display: inline-flex; align-items: center; gap: 2px; }
-.q-date-group .q-date { width: 96px; }
+/* 日期文本居中，使左右箭头与日期两侧间距对称 */
+.q-date-group .q-date { width: 82px; text-align: center; padding-left: 0; padding-right: 0; }
 /* 步进态隐藏 input 内置日历图标，改用右侧独立按钮，使顺序为 ‹ 日期 › 📅 */
 .q-date.q-date-stepper::-webkit-calendar-picker-indicator { display: none; }
+.q-date.q-date-stepper::-webkit-datetime-edit { text-align: center; }
 .q-date-step {
   width: 20px; height: 24px; border-radius: 5px; flex: 0 0 auto;
   display: inline-flex; align-items: center; justify-content: center;
@@ -425,16 +427,24 @@ body:hover .icon-btn { opacity: 1; }
   margin-top: 1px;
 }
 .mini-tx {
-  display: grid; grid-template-columns: auto minmax(0, 1fr) auto auto;
+  position: relative;
+  display: grid; grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: center; gap: 4px; min-height: 20px;
   padding: 2px 3px; border-radius: 4px; font-size: 11px;
 }
 .mini-tx:hover { background: var(--hover); }
 .mini-tx .dot { width: 6px; height: 6px; border-radius: 2px; }
 .mini-note { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--fg-soft); }
-.mini-amt { font-variant-numeric: tabular-nums; white-space: nowrap; }
-.mini-ops { display: none; gap: 1px; }
-.mini-tx:hover .mini-ops { display: inline-flex; }
+.mini-amt { font-variant-numeric: tabular-nums; white-space: nowrap; transition: opacity .12s; }
+/* 与流水/分类管理一致：用 opacity 平滑淡入、无重排抖动。
+   窄格内不预留操作位（会挤掉项目名），改为悬停时金额淡出、操作图标在原位淡入。 */
+.mini-tx:hover .mini-amt { opacity: 0; }
+.mini-ops {
+  position: absolute; right: 3px; top: 0; bottom: 0;
+  display: inline-flex; align-items: center; gap: 1px;
+  opacity: 0; pointer-events: none; transition: opacity .12s;
+}
+.mini-tx:hover .mini-ops { opacity: 1; pointer-events: auto; }
 .mini-tx .tx-op { width: 18px; height: 18px; }
 .mini-tx .tx-op svg { width: 10px; height: 10px; }
 .mini-more {
@@ -499,6 +509,27 @@ body.eb-capturing .tx-ops,
 body.eb-capturing .mini-ops,
 body.eb-capturing .cm-ops,
 body.eb-capturing .range-tools.is-empty { visibility: hidden !important; }
+/* 截图时展开流水列表的内部滚动区：html2canvas 无法正确处理固定高度的滚动容器，
+   否则整列内容会被压进可视高度内相互重叠错位。展开为自然高度后再整图捕获。 */
+body.eb-capturing[data-view="flow"] #app,
+body.eb-capturing .bill-shell.view-flow,
+body.eb-capturing .bill-shell.view-flow #viewHost { height: auto !important; min-height: 0 !important; }
+body.eb-capturing .flow-list-scroll {
+  overflow: visible !important; height: auto !important; max-height: none !important; flex: none !important;
+}
+/* 流水截图：整行「记一笔」表单不进入分享图；截图时只保留当前视图标签。 */
+body.eb-capturing .quick-card { display: none !important; }
+body.eb-capturing .tab-group button:not(.on) { visibility: hidden !important; }
+/* 周/月「默认时间」按钮与激活标签的柔和阴影会被 html2canvas 渲染成生硬灰块（双层背景错觉），
+   截图时改用真实边框，避免 inset shadow 被画成按钮内层灰底。 */
+body.eb-capturing .anchor-label.on,
+body.eb-capturing .tab-group button.on {
+  appearance: none !important; -webkit-appearance: none !important;
+  background: var(--card) !important; background-image: none !important;
+  box-shadow: none !important;
+}
+body.eb-capturing .anchor-label.on { border-color: var(--line-strong) !important; }
+body.eb-capturing .tab-group button.on { border-color: var(--line) !important; }
 
 /* ── 遮罩面板（当日明细 / 分类管理） ── */
 .overlay {
@@ -888,4 +919,3 @@ body:has(.qa-page) {
   border-color: var(--accent);
   font-weight: 600;
 }
-
