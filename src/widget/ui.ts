@@ -1,5 +1,12 @@
 import { LedgerStore } from "../shared/store";
-import { Tx, fmtMoney, todayStr } from "../shared/model";
+import { Tx, dateStr, fmtMoney, parseDate, todayStr } from "../shared/model";
+
+/** 在 YYYY-MM-DD 基础上偏移若干天 */
+function shiftDateStr(s: string, delta: number): string {
+  const d = parseDate(s || todayStr());
+  d.setDate(d.getDate() + delta);
+  return dateStr(d);
+}
 
 export const ICONS = {
   edit: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>`,
@@ -13,7 +20,9 @@ export const ICONS = {
   check: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7"/></svg>`,
   /** 相机图标：保存当前视图为图片 */
   camera: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h3l1.5-2h7L17 7h3a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V8a1 1 0 0 1 1-1Z"/><circle cx="12" cy="12.5" r="3.2"/></svg>`,
-  plus: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>`
+  plus: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>`,
+  /** 日历图标：日期步进器的取期按钮 */
+  calendar: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4.5" width="18" height="16" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="8" y1="2.5" x2="8" y2="6"/><line x1="16" y1="2.5" x2="16" y2="6"/></svg>`
 };
 
 export function esc(s: string): string {
@@ -99,7 +108,7 @@ export interface TxFormResult {
 export function txForm(
   store: LedgerStore,
   init: Partial<Tx>,
-  opts: { submitLabel: string; showDate?: boolean; showCancel?: boolean; onSubmit: (v: TxFormResult) => void; onCancel?: () => void }
+  opts: { submitLabel: string; showDate?: boolean; showCancel?: boolean; dateStepper?: boolean; onSubmit: (v: TxFormResult) => void; onCancel?: () => void }
 ): HTMLElement {
   const row = document.createElement("div");
   row.className = "quick-row";
@@ -156,7 +165,40 @@ export function txForm(
   }
 
   row.append(picker, project, amount, note);
-  if (opts.showDate !== false) row.append(date);
+  if (opts.showDate !== false) {
+    if (opts.dateStepper) {
+      const group = document.createElement("div");
+      group.className = "q-date-group";
+      const prev = document.createElement("button");
+      prev.type = "button";
+      prev.className = "q-date-step";
+      prev.textContent = "‹";
+      prev.title = "前一天";
+      prev.addEventListener("click", () => { date.value = shiftDateStr(date.value, -1); });
+      const next = document.createElement("button");
+      next.type = "button";
+      next.className = "q-date-step";
+      next.textContent = "›";
+      next.title = "后一天";
+      next.addEventListener("click", () => { date.value = shiftDateStr(date.value, 1); });
+      // 日历图标按钮：放在「›」右侧，点击唤起原生日期选择器（隐藏 input 内置图标，顺序为 ‹ 日期 › 📅）
+      date.classList.add("q-date-stepper");
+      const cal = document.createElement("button");
+      cal.type = "button";
+      cal.className = "q-date-cal";
+      cal.innerHTML = ICONS.calendar;
+      cal.title = "选择日期";
+      cal.addEventListener("click", () => {
+        const d = date as HTMLInputElement & { showPicker?: () => void };
+        if (typeof d.showPicker === "function") d.showPicker();
+        else { date.focus(); date.click(); }
+      });
+      group.append(prev, date, next, cal);
+      row.append(group);
+    } else {
+      row.append(date);
+    }
+  }
   row.append(submit);
   if (opts.onCancel && opts.showCancel !== false) {
     const cancel = document.createElement("button");

@@ -1,5 +1,5 @@
 import { readWorkspaceFile, writeWorkspaceFile } from "./api";
-import { Category, LedgerData, Tx, UNCAT, defaultData, genId, normalizeCategoryColor } from "./model";
+import { Category, LedgerData, Tx, UNCAT, defaultData, genId, normalizeCategoryColor, SortKey, SortDir } from "./model";
 
 const FILE = "/data/storage/bill-block/data.json";
 const BAK_FILE = "/data/storage/bill-block/data.json.bak";
@@ -60,6 +60,8 @@ export class LedgerStore {
         throw new Error("缺少必要字段");
       }
       this.data = parsed;
+      if (!this.data.sortBy) this.data.sortBy = "created";
+      if (!this.data.sortOrder) this.data.sortOrder = "desc";
       this.normalizeCategories();
       this.lastGoodText = text;
       this.fileExisted = true;
@@ -172,6 +174,20 @@ export class LedgerStore {
     if (this.hideEmptyCats === value) return;
     this.snapshot();
     this.data.hideEmptyCats = value;
+    await this.persist();
+  }
+  get sortBy(): SortKey {
+    return this.data.sortBy || "created";
+  }
+  get sortOrder(): SortDir {
+    return this.data.sortOrder || "desc";
+  }
+  async setSortSettings(by: SortKey, order: SortDir): Promise<void> {
+    this.ensureWritable();
+    if (this.sortBy === by && this.sortOrder === order) return;
+    this.snapshot();
+    this.data.sortBy = by;
+    this.data.sortOrder = order;
     await this.persist();
   }
 

@@ -246,7 +246,7 @@ body:hover .icon-btn { opacity: 1; }
 .q-project { width: 112px; font-weight: 500; }
 .q-project::placeholder, .q-amount::placeholder, .q-note::placeholder { color: var(--fg-faint); }
 .q-note { flex: 1 1 auto; min-width: 60px; }
-.q-date { width: 112px; color: var(--fg-soft); font-size: 12px; }
+.q-date { width: 108px; color: var(--fg-soft); font-size: 12px; }
 .q-date::-webkit-calendar-picker-indicator { opacity: .4; cursor: pointer; }
 .q-add {
   padding: 4px 12px; border-radius: 6px; background: var(--accent); color: var(--card);
@@ -254,6 +254,32 @@ body:hover .icon-btn { opacity: 1; }
 }
 .q-add:hover { opacity: .85; }
 .q-add:disabled { opacity: .35; cursor: default; }
+
+/* 日期步进器：‹ 日期 › 📅 */
+.q-date-group { display: inline-flex; align-items: center; gap: 2px; }
+.q-date-group .q-date { width: 96px; }
+/* 步进态隐藏 input 内置日历图标，改用右侧独立按钮，使顺序为 ‹ 日期 › 📅 */
+.q-date.q-date-stepper::-webkit-calendar-picker-indicator { display: none; }
+.q-date-step {
+  width: 20px; height: 24px; border-radius: 5px; flex: 0 0 auto;
+  display: inline-flex; align-items: center; justify-content: center;
+  font-size: 16px; line-height: 1; color: var(--fg-faint); transition: background .12s, color .12s;
+}
+.q-date-step:hover { background: var(--hover); color: var(--fg); }
+.q-date-cal {
+  width: 24px; height: 24px; border-radius: 5px; flex: 0 0 auto; margin-left: 2px;
+  display: inline-flex; align-items: center; justify-content: center;
+  color: var(--fg-faint); transition: background .12s, color .12s;
+}
+.q-date-cal:hover { background: var(--hover); color: var(--fg); }
+.q-date-cal svg { width: 14px; height: 14px; }
+
+/* 流水视图：记一笔按钮、每日合计、顶栏总额三者右缘对齐（预留顶栏相机按钮的右槽 34px）。
+   列表区滚动条恒定占位（scrollbar-gutter:stable），故每日合计的右内距 = 总槽 34 − 滚动条 15 = 19，
+   使有无滚动条时合计数字都落在同一竖直线上。 */
+.bill-shell.view-flow { --eb-gutter: 34px; --eb-add-gutter: 22px; }
+.bill-shell.view-flow .flow-list-scroll { scrollbar-gutter: stable; }
+.bill-shell.view-flow .day-head { padding-right: 19px; }
 
 /* 分类选择器 */
 .cat-pick { position: relative; flex: 0 0 auto; }
@@ -265,7 +291,7 @@ body:hover .icon-btn { opacity: 1; }
 .cat-pick-btn:hover { background: var(--hover); }
 .cat-pick-btn .dot { width: 8px; height: 8px; border-radius: 2.5px; }
 .cat-menu {
-  position: fixed; z-index: 50; min-width: 180px; max-height: 290px; overflow-y: auto;
+  position: fixed; z-index: 130; min-width: 180px; max-height: 290px; overflow-y: auto;
   background: var(--card); border-radius: 8px; box-shadow: var(--overlay-shadow);
   padding: 5px;
 }
@@ -500,6 +526,10 @@ body.eb-capturing .range-tools.is-empty { visibility: hidden !important; }
 .eb-popover.anchor-pop {
   width: 312px;
 }
+.eb-popover.inline-add {
+  width: 220px;
+  padding: 10px;
+}
 .eb-pop-title {
   display: flex; align-items: baseline; gap: 8px;
   font-size: 13px; font-weight: 600; color: var(--fg);
@@ -559,17 +589,18 @@ body.eb-capturing .range-tools.is-empty { visibility: hidden !important; }
 
 /* ── 取色板：10 默认色 + 调色板 + 色码 ── */
 .swatches {
-  display: flex; flex-direction: column; gap: 8px; padding: 8px 4px 6px;
+  display: flex; flex-direction: column; gap: 10px; padding: 8px 4px 6px;
 }
+/* 圆点取色板，风格对齐「日程块」插件 */
 .swatch-grid {
-  display: grid; grid-template-columns: repeat(5, 1fr); gap: 7px;
+  display: flex; flex-wrap: wrap; gap: 9px;
 }
 .swatch {
-  width: 100%; aspect-ratio: 1; max-width: 26px; height: 22px; border-radius: 6px;
-  border: 1px solid rgba(0, 0, 0, .08); transition: transform .1s;
+  width: 18px; height: 18px; padding: 0; border: none; border-radius: 50%;
+  cursor: pointer; outline-offset: 2px; transition: transform .1s;
 }
-.swatch:hover { transform: scale(1.12); }
-.swatch.on { outline: 2px solid var(--fg); outline-offset: 1px; }
+.swatch:hover { transform: scale(1.15); }
+.swatch.on { outline: 2px solid var(--fg); }
 .swatch-custom { display: flex; align-items: center; gap: 8px; }
 .swatch-custom .color-input {
   width: 30px; height: 26px; border-radius: 6px; padding: 0; overflow: hidden;
@@ -694,15 +725,16 @@ body:has(.qa-page) {
   fill: var(--fg-soft);
   transition: opacity .15s ease-in-out;
 }
-.chart-point.always-show .vline-val,
-.chart-point:hover .vline-val {
-  opacity: 1;
-}
+/* 峰值点常驻显示金额；悬停时隐藏常驻金额，改显「日期: 金额」 */
+.chart-point .val-hover { opacity: 0; }
+.chart-point.always-show .val-normal { opacity: 1; }
+.chart-point:hover .val-normal { opacity: 0; }
+.chart-point:hover .val-hover { opacity: 1; }
 
 @media (min-width: 561px) {
   .quick-row {
     display: grid;
-    grid-template-columns: 124px 120px 90px 1fr 130px 80px 32px;
+    grid-template-columns: 124px 120px 90px 1fr auto auto;
     gap: 8px;
     align-items: center;
     padding: 8px 12px;
@@ -712,12 +744,14 @@ body:has(.qa-page) {
   .quick-row > .q-amount { grid-column: 3; width: 100% !important; }
   .quick-row > .q-note { grid-column: 4; width: 100% !important; }
   .quick-row > .q-date { grid-column: 5; width: 100% !important; }
-  .quick-row > .q-add { grid-column: 6; width: auto !important; margin-left: 14px; height: 26px; display: inline-flex; align-items: center; justify-content: center; padding: 0 14px; white-space: nowrap; }
-  .quick-row > .nav-btn { grid-column: 7; margin-left: 4px; }
+  /* 日期步进组：日历左移、留出与记一笔按钮的呼吸间距 */
+  .quick-row > .q-date-group { grid-column: 5; justify-self: end; margin-right: 14px; }
+  .quick-row > .q-add { grid-column: 6; width: auto !important; justify-self: end; height: 26px; display: inline-flex; align-items: center; justify-content: center; padding: 0 14px; white-space: nowrap; margin-right: var(--eb-add-gutter, 0px); }
+  .quick-row > .nav-btn { grid-column: 6; margin-left: 4px; }
 
   .tx-row {
     display: grid;
-    grid-template-columns: 124px 120px 90px 1fr 130px 80px 32px;
+    grid-template-columns: 124px 120px 90px 1fr 108px 102px 32px;
     gap: 8px;
     align-items: center;
     padding: 8px 12px;
@@ -738,7 +772,7 @@ body:has(.qa-page) {
   .quick-row { flex-wrap: wrap; gap: 7px; }
   .q-amount { width: 78px; }
   .q-note { flex-basis: 130px; }
-  .q-date { width: 118px; }
+  .q-date { width: 108px; }
   .week-board { grid-template-columns: repeat(7, minmax(92px, 1fr)); }
   .hbar { grid-template-columns: auto minmax(4em, 7em) minmax(70px, 1fr); }
   .hbar b { grid-column: 3 / 4; justify-self: end; }
@@ -764,3 +798,94 @@ body:has(.qa-page) {
   width: auto !important;
   align-self: flex-end;
 }
+
+/* ── 排序管理平铺样式 ── */
+.sort-section {
+  border-top: 1px solid var(--line);
+  padding-top: 10px;
+  margin-top: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.sort-item {
+  display: flex;
+  flex-direction: column;
+  border-radius: 6px;
+  border: 1px solid transparent;
+  padding: 6px 8px;
+  transition: all .12s ease-in-out;
+  background: var(--card);
+}
+.sort-item:hover {
+  background: var(--hover);
+}
+.sort-item.active {
+  background: var(--hover);
+  border-color: var(--line-strong);
+}
+
+.sort-item-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  font-size: 12px;
+  user-select: none;
+}
+.sort-item-title {
+  font-weight: 500;
+  color: var(--fg);
+}
+.sort-item-radio {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: 1.5px solid var(--fg-faint);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all .12s;
+}
+.sort-item.active .sort-item-radio {
+  border-color: var(--accent);
+}
+.sort-item.active .sort-item-radio::after {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent);
+}
+
+.sort-sub-options {
+  display: flex;
+  gap: 4px;
+  margin-top: 6px;
+  padding-left: 2px;
+}
+.sort-sub-btn {
+  flex: 1;
+  height: 22px;
+  line-height: 20px;
+  text-align: center;
+  font-size: 11px;
+  border-radius: 4px;
+  border: 1px solid var(--line);
+  background: var(--card);
+  color: var(--fg-soft);
+  cursor: pointer;
+  transition: all .12s;
+}
+.sort-sub-btn:hover {
+  background: var(--hover);
+  color: var(--fg);
+}
+.sort-sub-btn.active {
+  background: var(--accent);
+  color: var(--card);
+  border-color: var(--accent);
+  font-weight: 600;
+}
+

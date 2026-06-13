@@ -3,3 +3,4 @@ dist/
 package.zip
 .tmp/
 .DS_Store
+.claude/

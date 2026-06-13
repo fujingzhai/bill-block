@@ -22,6 +22,9 @@ export interface Tx {
   created: number;
 }
 
+export type SortKey = "category" | "amount" | "created";
+export type SortDir = "asc" | "desc";
+
 export interface LedgerData {
   version: 1;
   updated: string;
@@ -30,20 +33,22 @@ export interface LedgerData {
   transactions: Tx[];
   /** 分类图是否隐藏本期无支出的分类，默认 false（全部显示） */
   hideEmptyCats?: boolean;
+  sortBy?: SortKey;
+  sortOrder?: SortDir;
 }
 
-/** 默认 10 色板（Notion / 谷歌日历风格）；用户可在此之外用调色板或色码自定义 */
+/** 默认 10 色板（谷歌日历风格，与「日程块」插件保持一致）；用户可在此之外用调色板或色码自定义 */
 export const PALETTE = [
-  "#E03E3E", // 红
-  "#D9730D", // 橙
-  "#DFAB01", // 黄
-  "#16A34A", // 绿
-  "#0F7B6C", // 青
-  "#0B6E99", // 蓝
-  "#2563EB", // 靛蓝
-  "#6940A5", // 紫
-  "#AD1A72", // 玫红
-  "#9B9A97"  // 灰
+  "#D50000", // 番茄红
+  "#E67C73", // 火鹤红
+  "#F4511E", // 橘子橙
+  "#F6BF26", // 香蕉黄
+  "#33B679", // 鼠尾草绿
+  "#0B8043", // 罗勒绿
+  "#039BE5", // 孔雀蓝
+  "#3F51B5", // 蓝莓
+  "#7986CB", // 薰衣草
+  "#8E24AA"  // 葡萄紫
 ];
 
 export const UNCAT = { id: "", name: "未分类", color: "#9B9A97" };
@@ -65,7 +70,7 @@ export function genId(): string {
 }
 
 export function defaultData(): LedgerData {
-  return { version: 1, updated: new Date().toISOString(), currency: "¥", categories: [], transactions: [] };
+  return { version: 1, updated: new Date().toISOString(), currency: "¥", categories: [], transactions: [], sortBy: "created", sortOrder: "desc" };
 }
 
 // ── 日期 ──────────────────────────────────────────────

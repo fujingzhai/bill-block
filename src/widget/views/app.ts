@@ -11,6 +11,8 @@ import {
   periodLabel,
   periodStart,
   shiftPeriod,
+  SortKey,
+  SortDir,
   todayStr,
   WEEKDAYS,
   weekLabel
@@ -24,7 +26,6 @@ import html2canvas from "html2canvas";
 interface TrendRow { name: string; tip: string; amount: number; }
 
 /** 高度配对：两两取较高者，使流水≈周账、月账≈统计 */
-const VIEW_PAIR: Record<MainView, MainView> = { flow: "week", week: "flow", month: "stats", stats: "month" };
 /** 额外留白，消除“差一点点”导致的滚动条 */
 const HEIGHT_BUFFER = 18;
 
@@ -119,8 +120,34 @@ function catName(store: LedgerStore, id: string): string {
   return id ? store.cat(id).name : "未分类";
 }
 
-function txsSorted(txs: Tx[]): Tx[] {
-  return [...txs].sort((a, b) => (a.date < b.date ? 1 : a.date > b.date ? -1 : b.created - a.created));
+/**
+ * 排序：日期始终降序（新的在前）；同一天内部按用户在「排序管理」里的选择排序。
+ * - category：依分类拖拽顺序（store.cats 数组次序），不区分升降
+ * - amount / created：按金额或创建时间，asc 升序 / desc 降序
+ * 排序仅作用于「同一个时间格子」内（流水的每个日期分组、周/月的每个日格）。
+ */
+function txsSorted(store: LedgerStore, txs: Tx[]): Tx[] {
+  const by = store.sortBy;
+  const dir = store.sortOrder;
+  const sign = dir === "asc" ? 1 : -1;
+  const catOrder = (id: string): number => {
+    const idx = store.cats.findIndex((c) => c.id === id);
+    return idx < 0 ? Number.MAX_SAFE_INTEGER : idx;
+  };
+  const within = (a: Tx, b: Tx): number => {
+    let cmp = 0;
+    if (by === "category") {
+      // 类别排序固定按拖拽顺序，不随升降切换
+      cmp = catOrder(a.catId) - catOrder(b.catId);
+      if (cmp === 0) return b.created - a.created;
+      return cmp;
+    }
+    if (by === "amount") cmp = a.amount - b.amount;
+    else cmp = a.created - b.created;
+    if (cmp === 0) cmp = a.created - b.created;
+    return cmp * sign;
+  };
+  return [...txs].sort((a, b) => (a.date < b.date ? 1 : a.date > b.date ? -1 : within(a, b)));
 }
 
 function rangeTxs(store: LedgerStore, start: string, end: string): Tx[] {
@@ -206,8 +233,8 @@ export function mountBillApp(root: HTMLElement, store: LedgerStore, opts: AppOpt
     else if (view === "week") renderPeriod(host, "week");
     else if (view === "month") renderPeriod(host, "month");
     else renderStats(host);
-    // 周账以自身内容定高；其余视图测量配对视图，流水则贴合周账高度并内部滚动
-    pairedHeight = view === "week" ? 0 : measureViewHeight(VIEW_PAIR[view]);
+    // 仅流水视图需要测量周账高度作为固定外框（内部滚动）；周/月/统计各按自身内容定高
+    pairedHeight = view === "flow" ? measureViewHeight("week") : 0;
     applyHeight();
   }
 
@@ -245,8 +272,8 @@ export function mountBillApp(root: HTMLElement, store: LedgerStore, opts: AppOpt
     const cs = getComputedStyle(document.body);
     const pad = parseFloat(cs.paddingTop || "0") + parseFloat(cs.paddingBottom || "0");
     const cur = Math.ceil(app.getBoundingClientRect().height);
-    // 流水视图固定为周账高度并允许内部滚动；其余取自身与配对视图较高者
-    const base = view === "flow" ? (pairedHeight || cur) : Math.max(cur, pairedHeight);
+    // 流水视图固定为周账高度并允许内部滚动；周/月/统计各按自身内容完整展开（不强制配对、不留白）
+    const base = view === "flow" ? (pairedHeight || cur) : cur;
     setWidgetHeight(base + pad + HEIGHT_BUFFER);
   }
 
@@ -372,6 +399,7 @@ export function mountBillApp(root: HTMLElement, store: LedgerStore, opts: AppOpt
     box.className = "quick-card";
     box.appendChild(txForm(store, { date: initDate || selectedDate }, {
       submitLabel: "记一笔",
+      dateStepper: true,
       onSubmit: async (v) => {
         const date = v.date;
         await store.addTx({ ...v, date });
@@ -386,7 +414,7 @@ export function mountBillApp(root: HTMLElement, store: LedgerStore, opts: AppOpt
 
   function renderFlow(host: HTMLElement): void {
     renderQuick(host, todayStr());
-    const txs = txsSorted(store.txs);
+    const txs = txsSorted(store, store.txs);
     host.insertAdjacentHTML("beforeend", `<div id="flowList" class="flow-list-scroll"></div>`);
     const list = host.querySelector("#flowList") as HTMLElement;
     renderGroupedList(list, txs, "还没有支出记录，从上方记第一笔");
@@ -428,10 +456,7 @@ export function mountBillApp(root: HTMLElement, store: LedgerStore, opts: AppOpt
         render();
       });
       card.appendChild(head);
-      const editing = editingTxForDay(ds);
-      if (editing) card.appendChild(inlineTxForm(ds, editing));
-      else if (inlineDay === ds) card.appendChild(inlineTxForm(ds));
-      else card.appendChild(addButton(ds));
+      card.appendChild(addButton(ds));
       renderMiniList(card, dayTxs, 0);
       board.appendChild(card);
     }
@@ -465,11 +490,8 @@ export function mountBillApp(root: HTMLElement, store: LedgerStore, opts: AppOpt
         render();
       });
       cell.appendChild(head);
-      const editing = editingTxForDay(ds);
-      if (editing) cell.appendChild(inlineTxForm(ds, editing));
-      else if (inlineDay === ds) cell.appendChild(inlineTxForm(ds));
-      else cell.appendChild(addButton(ds));
-      renderMiniList(cell, dayTxs, 3);
+      cell.appendChild(addButton(ds));
+      renderMiniList(cell, dayTxs, 0);
       board.appendChild(cell);
     }
     host.appendChild(board);
@@ -485,54 +507,71 @@ export function mountBillApp(root: HTMLElement, store: LedgerStore, opts: AppOpt
     btn.addEventListener("click", (e) => {
       e.stopPropagation();
       selectedDate = day;
-      inlineDay = inlineDay === day ? null : day;
-      render();
+      const isOpened = inlineDay === day;
+      closePopovers();
+      if (!isOpened) {
+        openAddPopover(btn, day);
+      }
     });
     return btn;
   }
 
-  function inlineTxForm(day: string, tx?: Tx): HTMLElement {
-    const wrap = document.createElement("div");
-    wrap.className = "inline-add";
-    const onFocusOut = () => {
-      window.setTimeout(() => {
-        const active = document.activeElement;
-        if (active && !form.contains(active) && !active.closest(".cat-menu")) {
-          form.removeEventListener("focusout", onFocusOut);
-          inlineDay = null;
-          editingId = null;
-          render();
-        }
-      }, 100);
-    };
-    const form = txForm(store, tx || { date: day }, {
-      submitLabel: tx ? "保存" : "保存",
+  function openAddPopover(anchorBtn: HTMLElement, day: string): void {
+    inlineDay = day;
+    const pop = document.createElement("div");
+    pop.className = "eb-popover inline-add";
+    
+    let closeFn: (() => void) | null = null;
+    const form = txForm(store, { date: day }, {
+      submitLabel: "保存",
       showDate: false,
       onSubmit: async (v) => {
-        form.removeEventListener("focusout", onFocusOut);
-        if (tx) await store.updateTx(tx.id, { ...v, date: day });
-        else await store.addTx({ ...v, date: day });
-        inlineDay = null;
-        editingId = null;
+        await store.addTx({ ...v, date: day });
+        closeFn?.();
         selectedDate = day;
         render();
       },
       onCancel: () => {
-        form.removeEventListener("focusout", onFocusOut);
-        inlineDay = null;
-        editingId = null;
-        render();
+        closeFn?.();
       }
     });
-    wrap.appendChild(form);
-    form.addEventListener("focusout", onFocusOut);
+    
+    pop.appendChild(form);
+    
+    closeFn = mountPopover(pop, anchorBtn, () => {
+      inlineDay = null;
+    });
+    
     window.setTimeout(() => (form.querySelector(".q-project") as HTMLInputElement | null)?.focus(), 0);
-    return wrap;
   }
 
-  function editingTxForDay(day: string): Tx | undefined {
-    const tx = editingId ? store.getTx(editingId) : undefined;
-    return tx?.date === day ? tx : undefined;
+  function openEditPopover(anchorEl: HTMLElement, tx: Tx): void {
+    editingId = tx.id;
+    const pop = document.createElement("div");
+    pop.className = "eb-popover inline-add";
+    
+    let closeFn: (() => void) | null = null;
+    const form = txForm(store, tx, {
+      submitLabel: "保存",
+      showDate: false,
+      onSubmit: async (v) => {
+        await store.updateTx(tx.id, { ...v, date: tx.date });
+        closeFn?.();
+        selectedDate = tx.date;
+        render();
+      },
+      onCancel: () => {
+        closeFn?.();
+      }
+    });
+    
+    pop.appendChild(form);
+    
+    closeFn = mountPopover(pop, anchorEl, () => {
+      editingId = null;
+    });
+    
+    window.setTimeout(() => (form.querySelector(".q-project") as HTMLInputElement | null)?.focus(), 0);
   }
 
   function maxDaySum(txs: Tx[]): number {
@@ -548,7 +587,8 @@ export function mountBillApp(root: HTMLElement, store: LedgerStore, opts: AppOpt
   }
 
   function renderPeriodStats(host: HTMLElement, txs: Tx[], start: Date, dim: "week" | "month"): void {
-    const byCat = sortCats(aggregateCats(store, txs).filter((c) => !store.hideEmptyCats || c.amount > 0), "amount-desc");
+    // 周/月柱状图固定按用户设定的分类顺序（拖拽顺序）排列，不按金额
+    const byCat = aggregateCats(store, txs).filter((c) => !store.hideEmptyCats || c.amount > 0);
     let trendRows: TrendRow[];
     if (dim === "week") {
       const wk = ["一", "二", "三", "四", "五", "六", "日"];
@@ -635,7 +675,8 @@ export function mountBillApp(root: HTMLElement, store: LedgerStore, opts: AppOpt
         <title>${esc(r.tip)} ${store.currency}${fmtMoney(r.amount)}</title>
         <circle class="pt-hit" cx="${cx}" cy="${cy}" r="6"/>
         <circle class="pt-dot" cx="${cx}" cy="${cy}" r="2.0"/>
-        <text class="vline-val" x="${cx}" y="${ty}" text-anchor="middle">${fmtMoney(r.amount)}</text>
+        <text class="vline-val val-normal" x="${cx}" y="${ty}" text-anchor="middle">${fmtMoney(r.amount)}</text>
+        <text class="vline-val val-hover" x="${cx}" y="${ty}" text-anchor="middle">${esc(r.tip)}: ${fmtMoney(r.amount)}</text>
       </g>`;
     }).join("");
 
@@ -913,7 +954,8 @@ export function mountBillApp(root: HTMLElement, store: LedgerStore, opts: AppOpt
           <title>${esc(s.name)} ${unitLabel(points[i], lineUnit)} ${store.currency}${fmtMoney(v)}</title>
           <circle class="pt-hit" cx="${cx}" cy="${cy}" r="7"/>
           <circle class="pt-dot" cx="${cx}" cy="${cy}" r="${isTotal ? 2.2 : 1.6}"/>
-          <text class="vline-val" x="${cx}" y="${ty}" text-anchor="middle">${fmtMoney(v)}</text>
+          <text class="vline-val val-normal" x="${cx}" y="${ty}" text-anchor="middle">${fmtMoney(v)}</text>
+          <text class="vline-val val-hover" x="${cx}" y="${ty}" text-anchor="middle">${esc(unitLabel(points[i], lineUnit))}: ${fmtMoney(v)}</text>
         </g>`;
       }).join("");
     }).join("");
@@ -998,7 +1040,7 @@ export function mountBillApp(root: HTMLElement, store: LedgerStore, opts: AppOpt
   function renderMiniList(host: HTMLElement, txs: Tx[], limit: number): void {
     const list = document.createElement("div");
     list.className = "mini-tx-list";
-    const rows = txsSorted(txs);
+    const rows = txsSorted(store, txs);
     const visible = limit > 0 ? rows.slice(0, limit) : rows;
     for (const tx of visible) {
       list.appendChild(miniRow(tx));
@@ -1035,16 +1077,20 @@ export function mountBillApp(root: HTMLElement, store: LedgerStore, opts: AppOpt
     row.addEventListener("dblclick", (e) => {
       if ((e.target as HTMLElement).closest(".tx-op")) return;
       selectedDate = tx.date;
-      inlineDay = null;
-      editingId = tx.id;
-      render();
+      const isOpened = editingId === tx.id;
+      closePopovers();
+      if (!isOpened) {
+        openEditPopover(row, tx);
+      }
     });
     editBtn.addEventListener("click", (e) => {
       e.stopPropagation();
       selectedDate = tx.date;
-      inlineDay = null;
-      editingId = tx.id;
-      render();
+      const isOpened = editingId === tx.id;
+      closePopovers();
+      if (!isOpened) {
+        openEditPopover(row, tx);
+      }
     });
     delBtn.addEventListener("click", async () => {
       await store.removeTx(tx.id);
@@ -1169,7 +1215,10 @@ export function mountBillApp(root: HTMLElement, store: LedgerStore, opts: AppOpt
     };
     const onDown = (e: MouseEvent) => {
       const t = e.target as Node;
-      if (!el.contains(t) && !anchorEl.contains(t)) close();
+      if (el.contains(t) || anchorEl.contains(t)) return;
+      // 分类下拉菜单挂在 document.body 上，点击它不应关闭弹窗
+      if ((t as HTMLElement).closest?.(".cat-menu")) return;
+      close();
     };
     document.addEventListener("keydown", onKey, true);
     const timer = window.setTimeout(() => document.addEventListener("mousedown", onDown, true), 0);
@@ -1358,10 +1407,44 @@ export function mountBillApp(root: HTMLElement, store: LedgerStore, opts: AppOpt
       <div class="eb-pop-title">分类管理</div>
       <div class="cm-list"></div>
       <button class="cm-add" type="button">${ICONS.plus}<span>新增分类</span></button>
-      <label class="cm-option" title="勾选后，分类图只显示本期有支出的分类">
+      <label class="cm-option" title="勾选后，分类图只显示本期有支出的分类" style="margin-bottom:8px;">
         <input type="checkbox" class="cm-hide-empty"${store.hideEmptyCats ? " checked" : ""}>
         <span>隐藏无支出的分类</span>
-      </label>`;
+      </label>
+      
+      <div class="sort-section">
+        <div class="eb-pop-title" style="margin-bottom:4px;">排序管理</div>
+        
+        <div class="sort-item" data-key="category">
+          <div class="sort-item-header">
+            <span class="sort-item-title">按类别</span>
+            <span class="sort-item-radio"></span>
+          </div>
+        </div>
+        
+        <div class="sort-item" data-key="amount">
+          <div class="sort-item-header">
+            <span class="sort-item-title">按金额</span>
+            <span class="sort-item-radio"></span>
+          </div>
+          <div class="sort-sub-options">
+            <button class="sort-sub-btn" data-dir="desc" type="button">降序</button>
+            <button class="sort-sub-btn" data-dir="asc" type="button">升序</button>
+          </div>
+        </div>
+        
+        <div class="sort-item" data-key="created">
+          <div class="sort-item-header">
+            <span class="sort-item-title">按创建时间</span>
+            <span class="sort-item-radio"></span>
+          </div>
+          <div class="sort-sub-options">
+            <button class="sort-sub-btn" data-dir="desc" type="button">降序</button>
+            <button class="sort-sub-btn" data-dir="asc" type="button">升序</button>
+          </div>
+        </div>
+      </div>
+    `;
     const listEl = pop.querySelector(".cm-list") as HTMLElement;
     pop.querySelector<HTMLInputElement>(".cm-hide-empty")?.addEventListener("change", (e) => {
       store.setHideEmptyCats((e.target as HTMLInputElement).checked);
@@ -1372,6 +1455,76 @@ export function mountBillApp(root: HTMLElement, store: LedgerStore, opts: AppOpt
       render();
     });
     pop.querySelector(".cm-add")!.addEventListener("click", () => addCat());
+
+    // Sort Controls Setup
+    const sortItems = pop.querySelectorAll(".sort-section .sort-item");
+    const updateSortUI = () => {
+      const currentBy = store.sortBy;
+      const currentDir = store.sortOrder;
+      
+      sortItems.forEach((itemEl) => {
+        const item = itemEl as HTMLElement;
+        const key = item.dataset.key as SortKey;
+        const isActive = key === currentBy;
+        
+        if (isActive) {
+          item.classList.add("active");
+        } else {
+          item.classList.remove("active");
+        }
+        
+        const subOpts = item.querySelector(".sort-sub-options") as HTMLElement;
+        if (subOpts) {
+          if (isActive) {
+            subOpts.style.display = "flex";
+          } else {
+            subOpts.style.display = "none";
+          }
+          
+          const btns = subOpts.querySelectorAll(".sort-sub-btn");
+          btns.forEach((btnEl) => {
+            const btn = btnEl as HTMLButtonElement;
+            const dir = btn.dataset.dir as SortDir;
+            if (dir === currentDir) {
+              btn.classList.add("active");
+            } else {
+              btn.classList.remove("active");
+            }
+          });
+        }
+      });
+      reposition();
+    };
+    
+    updateSortUI();
+    
+    sortItems.forEach((itemEl) => {
+      const item = itemEl as HTMLElement;
+      const key = item.dataset.key as SortKey;
+      
+      const header = item.querySelector(".sort-item-header") as HTMLElement;
+      header.addEventListener("click", async (e) => {
+        e.stopPropagation();
+        if (store.sortBy !== key) {
+          await store.setSortSettings(key, store.sortOrder);
+          updateSortUI();
+          render();
+        }
+      });
+      
+      const subBtns = item.querySelectorAll(".sort-sub-btn");
+      subBtns.forEach((btnEl) => {
+        const btn = btnEl as HTMLButtonElement;
+        btn.addEventListener("click", async (e) => {
+          e.stopPropagation();
+          const dir = btn.dataset.dir as SortDir;
+          await store.setSortSettings(key, dir);
+          updateSortUI();
+          render();
+        });
+      });
+    });
+
     paint();
 
     function paint(): void {
