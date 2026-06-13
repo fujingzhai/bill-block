@@ -16,6 +16,7 @@ Insert from the slash menu `/记账块` (also matches `记账`, `账单`, `jizha
 ## Highlights
 
 - One ledger, synced live across multiple blocks and views, with no SiYuan database required.
+- New ledgers start with no preset categories, so each user can build their own category system from scratch.
 - The ledger lives in a standalone workspace file and syncs across devices via SiYuan's official cloud sync.
 - Flow, Week, and Month views all carry a quick-entry row; amount and project are required, category / note / date are optional.
 - Week / Month can pin a specific week or month as the block's default (stored in block attributes, restored on reload); a center anchor button jumps back after browsing other periods.

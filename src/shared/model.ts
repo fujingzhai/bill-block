@@ -65,22 +65,7 @@ export function genId(): string {
 }
 
 export function defaultData(): LedgerData {
-  const cats: Category[] = [];
-  const add = (name: string, color: string, parentId: string | null = null) => {
-    const c = { id: genId() + cats.length, name, color, parentId };
-    cats.push(c);
-    return c;
-  };
-  add("餐饮", PALETTE[0]);
-  add("交通", PALETTE[1]);
-  add("购物", PALETTE[2]);
-  add("娱乐", PALETTE[3]);
-  add("居住", PALETTE[4]);
-  add("医疗", PALETTE[5]);
-  add("学习", PALETTE[6]);
-  add("人情", PALETTE[7]);
-  add("其他", PALETTE[9]);
-  return { version: 1, updated: new Date().toISOString(), currency: "¥", categories: cats, transactions: [] };
+  return { version: 1, updated: new Date().toISOString(), currency: "¥", categories: [], transactions: [] };
 }
 
 // ── 日期 ──────────────────────────────────────────────

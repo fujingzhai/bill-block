@@ -85,19 +85,30 @@ body[data-view="flow"] #app { height: 100%; }
   min-width: 0; flex: 1 1 auto;
 }
 .period-tools {
-  display: flex; align-items: center; justify-content: flex-end; gap: 8px;
+  display: flex; align-items: center; justify-content: flex-end; gap: 4px;
   min-width: 0; flex: 0 1 auto; flex-wrap: nowrap; margin-left: auto;
 }
 /* 导航组（左右翻页 + 默认时间）在左，总额在右（贴近截图按钮） */
 .period-nav-group {
-  display: flex; align-items: center; gap: 8px; min-width: 0; flex: 0 0 auto;
+  display: flex; align-items: center; gap: 5px; min-width: 0; flex: 0 0 auto;
 }
-/* 总额右对齐、设最小宽度：常规笔数/金额下宽度恒定使导航按钮不漂移，超长时才增宽 */
+/* 统计文字贴紧左侧时间工具，避免右对齐空白拉开距离 */
 .period-tools .top-total {
-  flex: 0 0 auto; min-width: 104px; text-align: right; white-space: nowrap;
+  flex: 0 0 auto; min-width: 0; text-align: left; white-space: nowrap;
   color: var(--fg-faint);
 }
 .period-tools .top-total b {
+  color: inherit; font-weight: 500;
+}
+.stats-tools {
+  display: flex; align-items: center; justify-content: flex-end; gap: 8px;
+  min-width: 0; flex: 0 1 auto; flex-wrap: nowrap; margin-left: auto;
+}
+.stats-tools .top-total {
+  flex: 0 0 auto; min-width: 0; text-align: left; white-space: nowrap;
+  color: var(--fg-faint);
+}
+.stats-tools .top-total b {
   color: inherit; font-weight: 500;
 }
 .range-tools {
@@ -701,7 +712,7 @@ body:has(.qa-page) {
   .quick-row > .q-amount { grid-column: 3; width: 100% !important; }
   .quick-row > .q-note { grid-column: 4; width: 100% !important; }
   .quick-row > .q-date { grid-column: 5; width: 100% !important; }
-  .quick-row > .q-add { grid-column: 6; width: auto !important; margin-left: 8px; height: 26px; display: inline-flex; align-items: center; justify-content: center; padding: 0 14px; white-space: nowrap; }
+  .quick-row > .q-add { grid-column: 6; width: auto !important; margin-left: 14px; height: 26px; display: inline-flex; align-items: center; justify-content: center; padding: 0 14px; white-space: nowrap; }
   .quick-row > .nav-btn { grid-column: 7; margin-left: 4px; }
 
   .tx-row {

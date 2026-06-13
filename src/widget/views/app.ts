@@ -292,10 +292,15 @@ export function mountBillApp(root: HTMLElement, store: LedgerStore, opts: AppOpt
     }
     if (view === "stats") {
       const empty = !chartRange.start && !chartRange.end;
-      return `<div class="range-tools${empty ? " is-empty" : ""}">
-        <input id="rangeStart" type="date" value="${chartRange.start}" title="起始时间，不填表示不限定">
-        <span class="range-dash">-</span>
-        <input id="rangeEnd" type="date" value="${chartRange.end}" title="结束时间，不填表示不限定">
+      const txs = rangeTxs(store, chartRange.start, chartRange.end);
+      const total = txs.reduce((s, t) => s + t.amount, 0);
+      return `<div class="stats-tools">
+        <div class="range-tools${empty ? " is-empty" : ""}">
+          <input id="rangeStart" type="date" value="${chartRange.start}" title="起始时间，不填表示不限定">
+          <span class="range-dash">-</span>
+          <input id="rangeEnd" type="date" value="${chartRange.end}" title="结束时间，不填表示不限定">
+        </div>
+        <span class="top-total">共 ${txs.length} 笔 · <b>${store.currency}${fmtMoney(total)}</b></span>
       </div>`;
     }
     const txs = store.txs;
@@ -1631,4 +1636,3 @@ function dateFromIsoWeek(year: number, week: number): Date {
   d.setDate(d.getDate() - day + (week - 1) * 7);
   return d;
 }
-
