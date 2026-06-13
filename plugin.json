@@ -1,0 +1,22 @@
+{
+  "name": "bill-block",
+  "author": "游夏",
+  "url": "https://github.com/fujingzhai/bill-block",
+  "version": "0.3.9",
+  "minAppVersion": "3.6.0",
+  "backends": ["windows", "linux", "darwin"],
+  "frontends": ["desktop", "desktop-window", "browser-desktop"],
+  "displayName": {
+    "default": "Bill Block",
+    "zh_CN": "记账块"
+  },
+  "description": {
+    "default": "Embed editable bill ledger, stats and calendar blocks in SiYuan documents. One shared data source, Notion-style minimal UI.",
+    "zh_CN": "在思源文档中嵌入可编辑的账本块、统计块、月历块。同一份账单数据，多视图实时同步，Notion 风格极简界面。"
+  },
+  "readme": {
+    "default": "README.md",
+    "zh_CN": "README_zh_CN.md"
+  },
+  "keywords": ["expense", "ledger", "记账", "账本", "支出", "统计"]
+}

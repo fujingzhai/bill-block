@@ -1,0 +1,441 @@
+{
+  "version": 1,
+  "updated": "2026-06-13T08:09:31.377Z",
+  "currency": "¥",
+  "categories": [
+    {
+      "id": "mqc2r5rj00013b",
+      "name": "餐饮",
+      "color": "#E03E3E",
+      "parentId": null
+    },
+    {
+      "id": "mqc2r5rj0015tu",
+      "name": "交通",
+      "color": "#0B6E99",
+      "parentId": null
+    },
+    {
+      "id": "mqc2r5rj0027es",
+      "name": "购物",
+      "color": "#DFAB01",
+      "parentId": null
+    },
+    {
+      "id": "mqc2r5rj0036xe",
+      "name": "娱乐",
+      "color": "#0F7B6C",
+      "parentId": null
+    },
+    {
+      "id": "mqc2r5rj0045zt",
+      "name": "居住",
+      "color": "#16A34A",
+      "parentId": null
+    },
+    {
+      "id": "mqc2r5rj0054rp",
+      "name": "数码",
+      "color": "#2563EB",
+      "parentId": null
+    },
+    {
+      "id": "mqc2r5rj0066np",
+      "name": "医疗",
+      "color": "#6940A5",
+      "parentId": null
+    },
+    {
+      "id": "mqc2r5rj0073ny",
+      "name": "学习",
+      "color": "#AD1A72",
+      "parentId": null
+    },
+    {
+      "id": "mqc2r5rj008w5",
+      "name": "人情",
+      "color": "#D9730D",
+      "parentId": null
+    }
+  ],
+  "transactions": [
+    {
+      "id": "mqc2r5rj0092ga",
+      "amount": 188,
+      "project": "周末火锅",
+      "catId": "mqc2r5rj00013b",
+      "date": "2026-05-16",
+      "note": "和朋友",
+      "created": 1778904000010
+    },
+    {
+      "id": "mqc2r5rl00a5mv",
+      "amount": 32,
+      "project": "打车",
+      "catId": "mqc2r5rj0015tu",
+      "date": "2026-05-16",
+      "note": "",
+      "created": 1778904000011
+    },
+    {
+      "id": "mqc2r5rl00b1qy",
+      "amount": 2600,
+      "project": "五月房租",
+      "catId": "mqc2r5rj0045zt",
+      "date": "2026-05-18",
+      "note": "月付",
+      "created": 1779076800012
+    },
+    {
+      "id": "mqc2r5rl00c62p",
+      "amount": 459,
+      "project": "运动鞋",
+      "catId": "mqc2r5rj0027es",
+      "date": "2026-05-19",
+      "note": "",
+      "created": 1779163200013
+    },
+    {
+      "id": "mqc2r5rl00d64v",
+      "amount": 28,
+      "project": "工作午餐",
+      "catId": "mqc2r5rj00013b",
+      "date": "2026-05-20",
+      "note": "",
+      "created": 1779249600014
+    },
+    {
+      "id": "mqc2r5rl00eam",
+      "amount": 89,
+      "project": "技术书籍",
+      "catId": "mqc2r5rj0073ny",
+      "date": "2026-05-22",
+      "note": "并发编程",
+      "created": 1779422400015
+    },
+    {
+      "id": "mqc2r5rl00f5ch",
+      "amount": 78,
+      "project": "电影票",
+      "catId": "mqc2r5rj0036xe",
+      "date": "2026-05-23",
+      "note": "两张",
+      "created": 1779508800016
+    },
+    {
+      "id": "mqc2r5rl00g2gn",
+      "amount": 45,
+      "project": "晚饭",
+      "catId": "mqc2r5rj00013b",
+      "date": "2026-05-25",
+      "note": "",
+      "created": 1779681600017
+    },
+    {
+      "id": "mqc2r5rl00h32b",
+      "amount": 56,
+      "project": "感冒买药",
+      "catId": "mqc2r5rj0066np",
+      "date": "2026-05-27",
+      "note": "",
+      "created": 1779854400018
+    },
+    {
+      "id": "mqc2r5rl00i2qy",
+      "amount": 399,
+      "project": "机械键盘",
+      "catId": "mqc2r5rj0054rp",
+      "date": "2026-05-29",
+      "note": "",
+      "created": 1780027200019
+    },
+    {
+      "id": "mqc2r5rl00j1f9",
+      "amount": 300,
+      "project": "同事随礼",
+      "catId": "mqc2r5rj008w5",
+      "date": "2026-05-31",
+      "note": "婚礼",
+      "created": 1780200000020
+    },
+    {
+      "id": "mqc2r5rl00k24x",
+      "amount": 12,
+      "project": "早餐",
+      "catId": "mqc2r5rj00013b",
+      "date": "2026-06-01",
+      "note": "",
+      "created": 1780286400021
+    },
+    {
+      "id": "mqc2r5rl00l1ag",
+      "amount": 6,
+      "project": "地铁通勤",
+      "catId": "mqc2r5rj0015tu",
+      "date": "2026-06-01",
+      "note": "",
+      "created": 1780286400022
+    },
+    {
+      "id": "mqc2r5rl00m5bu",
+      "amount": 26,
+      "project": "午餐便当",
+      "catId": "mqc2r5rj00013b",
+      "date": "2026-06-02",
+      "note": "",
+      "created": 1780372800023
+    },
+    {
+      "id": "mqc2r5rl00n3ue",
+      "amount": 73,
+      "project": "日用百货",
+      "catId": "mqc2r5rj0027es",
+      "date": "2026-06-02",
+      "note": "纸巾洗衣液",
+      "created": 1780372800024
+    },
+    {
+      "id": "mqc2r5rl00o7gc",
+      "amount": 25,
+      "project": "视频会员",
+      "catId": "mqc2r5rj0036xe",
+      "date": "2026-06-03",
+      "note": "季卡",
+      "created": 1780459200025
+    },
+    {
+      "id": "mqc2r5rl00p6xd",
+      "amount": 18,
+      "project": "奶茶",
+      "catId": "mqc2r5rj00013b",
+      "date": "2026-06-03",
+      "note": "",
+      "created": 1780459200026
+    },
+    {
+      "id": "mqc2r5rl00q2tj",
+      "amount": 34,
+      "project": "打车回家",
+      "catId": "mqc2r5rj0015tu",
+      "date": "2026-06-04",
+      "note": "加班",
+      "created": 1780545600027
+    },
+    {
+      "id": "mqc2r5rl00r3ax",
+      "amount": 39,
+      "project": "夜宵",
+      "catId": "mqc2r5rj00013b",
+      "date": "2026-06-04",
+      "note": "",
+      "created": 1780545600028
+    },
+    {
+      "id": "mqc2r5rl00s7mb",
+      "amount": 199,
+      "project": "在线课程",
+      "catId": "mqc2r5rj0073ny",
+      "date": "2026-06-05",
+      "note": "Rust 进阶",
+      "created": 1780632000029
+    },
+    {
+      "id": "mqc2r5rl00t1tt",
+      "amount": 68,
+      "project": "周末早午餐",
+      "catId": "mqc2r5rj00013b",
+      "date": "2026-06-06",
+      "note": "",
+      "created": 1780718400030
+    },
+    {
+      "id": "mqc2r5rl00u4x5",
+      "amount": 158,
+      "project": "T恤两件",
+      "catId": "mqc2r5rj0027es",
+      "date": "2026-06-06",
+      "note": "",
+      "created": 1780718400031
+    },
+    {
+      "id": "mqc2r5rl00vqx",
+      "amount": 120,
+      "project": "桌游聚会",
+      "catId": "mqc2r5rj0036xe",
+      "date": "2026-06-07",
+      "note": "AA",
+      "created": 1780804800032
+    },
+    {
+      "id": "mqc2r5rl00w3f6",
+      "amount": 3,
+      "project": "共享单车",
+      "catId": "mqc2r5rj0015tu",
+      "date": "2026-06-07",
+      "note": "",
+      "created": 1780804800033
+    },
+    {
+      "id": "mqc2r5rl00x3ku",
+      "amount": 25,
+      "project": "工作午餐",
+      "catId": "mqc2r5rj00013b",
+      "date": "2026-06-08",
+      "note": "",
+      "created": 1780891200034
+    },
+    {
+      "id": "mqc2r5rl00y6n6",
+      "amount": 6,
+      "project": "地铁通勤",
+      "catId": "mqc2r5rj0015tu",
+      "date": "2026-06-08",
+      "note": "",
+      "created": 1780891200035
+    },
+    {
+      "id": "mqc2r5rl00z25m",
+      "amount": 39,
+      "project": "手机壳",
+      "catId": "mqc2r5rj0054rp",
+      "date": "2026-06-08",
+      "note": "",
+      "created": 1780891200036
+    },
+    {
+      "id": "mqc2r5rl010113",
+      "amount": 30,
+      "project": "午餐",
+      "catId": "mqc2r5rj00013b",
+      "date": "2026-06-09",
+      "note": "",
+      "created": 1780977600037
+    },
+    {
+      "id": "mqc2r5rl01148i",
+      "amount": 22,
+      "project": "咖啡",
+      "catId": "mqc2r5rj00013b",
+      "date": "2026-06-09",
+      "note": "续命",
+      "created": 1780977600038
+    },
+    {
+      "id": "mqc2r5rl01264q",
+      "amount": 142,
+      "project": "超市采购",
+      "catId": "mqc2r5rj0027es",
+      "date": "2026-06-09",
+      "note": "周末囤货",
+      "created": 1780977600039
+    },
+    {
+      "id": "mqc2r5rl0132h2",
+      "amount": 28,
+      "project": "午餐",
+      "catId": "mqc2r5rj00013b",
+      "date": "2026-06-10",
+      "note": "",
+      "created": 1781064000040
+    },
+    {
+      "id": "mqc2r5rl01478z",
+      "amount": 260,
+      "project": "牙科洗牙",
+      "catId": "mqc2r5rj0066np",
+      "date": "2026-06-10",
+      "note": "",
+      "created": 1781064000041
+    },
+    {
+      "id": "mqc2r5rl015tb",
+      "amount": 6,
+      "project": "地铁通勤",
+      "catId": "mqc2r5rj0015tu",
+      "date": "2026-06-10",
+      "note": "",
+      "created": 1781064000042
+    },
+    {
+      "id": "mqc2r5rl0164q9",
+      "amount": 96,
+      "project": "和同事聚餐",
+      "catId": "mqc2r5rj00013b",
+      "date": "2026-06-11",
+      "note": "",
+      "created": 1781150400043
+    },
+    {
+      "id": "mqc2r5rl0173oh",
+      "amount": 580,
+      "project": "演唱会门票",
+      "catId": "mqc2r5rj0036xe",
+      "date": "2026-06-11",
+      "note": "期待已久",
+      "created": 1781150400044
+    },
+    {
+      "id": "mqc2r5rl0185fd",
+      "amount": 27,
+      "project": "午餐",
+      "catId": "mqc2r5rj00013b",
+      "date": "2026-06-12",
+      "note": "",
+      "created": 1781236800045
+    },
+    {
+      "id": "mqc2r5rl019ye",
+      "amount": 49,
+      "project": "公开课资料",
+      "catId": "mqc2r5rj0073ny",
+      "date": "2026-06-12",
+      "note": "",
+      "created": 1781236800046
+    },
+    {
+      "id": "mqc2r5rl01a3sq",
+      "amount": 200,
+      "project": "朋友生日礼物",
+      "catId": "mqc2r5rj008w5",
+      "date": "2026-06-12",
+      "note": "",
+      "created": 1781236800047
+    },
+    {
+      "id": "mqc2r5rl01b5ys",
+      "amount": 14,
+      "project": "早餐",
+      "catId": "mqc2r5rj00013b",
+      "date": "2026-06-13",
+      "note": "",
+      "created": 1781323200048
+    },
+    {
+      "id": "mqc2r5rl01c1w1",
+      "amount": 168,
+      "project": "周末火锅",
+      "catId": "mqc2r5rj00013b",
+      "date": "2026-06-13",
+      "note": "家庭聚餐",
+      "created": 1781323200049
+    },
+    {
+      "id": "mqc2r5rl01d4vb",
+      "amount": 28,
+      "project": "打车",
+      "catId": "mqc2r5rj0015tu",
+      "date": "2026-06-13",
+      "note": "",
+      "created": 1781323200050
+    },
+    {
+      "id": "mqc2r5rl01e40e",
+      "amount": 66,
+      "project": "绿植",
+      "catId": "mqc2r5rj0027es",
+      "date": "2026-06-13",
+      "note": "点缀桌面",
+      "created": 1781323200051
+    }
+  ]
+}
