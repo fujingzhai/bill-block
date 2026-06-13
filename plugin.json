@@ -11,8 +11,8 @@
     "zh_CN": "记账块"
   },
   "description": {
-    "default": "Embed editable bill ledger, stats and calendar blocks in SiYuan documents. One shared data source, Notion-style minimal UI.",
-    "zh_CN": "在思源文档中嵌入可编辑的账本块、统计块、月历块。同一份账单数据，多视图实时同步，Notion 风格极简界面。"
+    "default": "Embed one unified bill block for quick expense entry, period ledgers, category management and trend stats.",
+    "zh_CN": "在思源文档中嵌入统一记账块，支持随手记账、周期账单、分类管理与趋势统计。"
   },
   "readme": {
     "default": "README.md",
