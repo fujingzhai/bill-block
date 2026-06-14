@@ -2,10 +2,18 @@
   "name": "bill-block",
   "author": "游夏",
   "url": "https://github.com/fujingzhai/bill-block",
-  "version": "0.6.4",
+  "version": "0.6.5",
   "minAppVersion": "3.6.0",
-  "backends": ["windows", "linux", "darwin"],
-  "frontends": ["desktop", "desktop-window", "browser-desktop"],
+  "backends": [
+    "windows",
+    "linux",
+    "darwin"
+  ],
+  "frontends": [
+    "desktop",
+    "desktop-window",
+    "browser-desktop"
+  ],
   "displayName": {
     "default": "Bill Block",
     "zh_CN": "记账块"
@@ -18,5 +26,12 @@
     "default": "README.md",
     "zh_CN": "README_zh_CN.md"
   },
-  "keywords": ["expense", "ledger", "记账", "账本", "支出", "统计"]
+  "keywords": [
+    "expense",
+    "ledger",
+    "记账",
+    "账本",
+    "支出",
+    "统计"
+  ]
 }

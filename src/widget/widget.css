@@ -39,6 +39,24 @@ html.dark .cm-row .dot { border-color: rgba(255, 255, 255, 0.14); }
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
 html, body { background: transparent; }
+
+/* ── 全局滚动条：纤细 + 半透明，暗色主题下不突兀 ── */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0, 0, 0, 0.15) transparent;
+}
+html.dark * {
+  scrollbar-color: rgba(255, 255, 255, 0.18) transparent;
+}
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.15);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover { background: rgba(0, 0, 0, 0.28); }
+::-webkit-scrollbar-track { background: transparent; }
+html.dark ::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.18); }
+html.dark ::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.32); }
 body {
   font-family: var(--siyuan-font-family, inherit);
   color: var(--fg);
@@ -504,10 +522,10 @@ body:hover .icon-btn { opacity: 1; }
   position: absolute; right: 6px; bottom: 6px;
   width: 22px; height: 22px; border-radius: 5px;
   display: inline-flex; align-items: center; justify-content: center;
-  color: var(--fg-faint); background: var(--hover);
+  color: var(--fg-faint); background: transparent;
   font-size: 15px; line-height: 1; opacity: .72;
 }
-.date-add:hover { color: var(--fg); opacity: 1; box-shadow: var(--shadow); }
+.date-add:hover { color: var(--fg); background: var(--hover); opacity: 1; box-shadow: var(--shadow); }
 .inline-add .quick-row {
   flex-direction: column; align-items: stretch; gap: 5px;
   padding: 6px; margin: 0 0 3px; border-radius: 7px;
