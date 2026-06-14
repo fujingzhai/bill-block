@@ -198,7 +198,30 @@ export function mountBillApp(root: HTMLElement, store: LedgerStore, opts: AppOpt
   let inlineDay: string | null = null;
   let managerOpen = false;
   let anchorOpen = false;
+  let searchOpen = false;
   let popoverClose: (() => void) | null = null;
+  /** 流水视图的多条件筛选；catId 为 "__all__" 表示不限分类（"" 为「未分类」） */
+  const flowFilter = { kw: "", catId: "__all__", min: "", max: "", start: "", end: "" };
+  function flowFilterActive(): boolean {
+    return !!(flowFilter.kw.trim() || flowFilter.catId !== "__all__" ||
+      flowFilter.min !== "" || flowFilter.max !== "" || flowFilter.start || flowFilter.end);
+  }
+  /** 对流水按当前筛选条件过滤；无条件时原样返回 */
+  function applyFlowFilter(txs: Tx[]): Tx[] {
+    if (!flowFilterActive()) return txs;
+    const kw = flowFilter.kw.trim().toLowerCase();
+    const min = flowFilter.min === "" ? null : Number(flowFilter.min);
+    const max = flowFilter.max === "" ? null : Number(flowFilter.max);
+    return txs.filter((t) => {
+      if (kw && !`${t.project || ""} ${t.note || ""}`.toLowerCase().includes(kw)) return false;
+      if (flowFilter.catId !== "__all__" && t.catId !== flowFilter.catId) return false;
+      if (min !== null && !isNaN(min) && t.amount < min) return false;
+      if (max !== null && !isNaN(max) && t.amount > max) return false;
+      if (flowFilter.start && t.date < flowFilter.start) return false;
+      if (flowFilter.end && t.date > flowFilter.end) return false;
+      return true;
+    });
+  }
   /** 配对视图的内容高度缓存，render 时刷新 */
   let pairedHeight = 0;
   let chartRange = defaultRange();
@@ -330,9 +353,13 @@ export function mountBillApp(root: HTMLElement, store: LedgerStore, opts: AppOpt
         <span class="top-total">共 ${txs.length} 笔 · <b>${store.currency}${fmtMoney(total)}</b></span>
       </div>`;
     }
-    const txs = store.txs;
+    const txs = applyFlowFilter(store.txs);
     const total = txs.reduce((s, t) => s + t.amount, 0);
-    return `<span class="top-total">共 ${txs.length} 笔 · <b>${store.currency}${fmtMoney(total)}</b></span>`;
+    const active = flowFilterActive();
+    return `<div class="flow-tools">
+      <button class="icon-btn always flow-search-btn${active ? " on" : ""}" data-act="search" title="筛选流水">${ICONS.search}</button>
+      <span class="top-total">共 ${txs.length} 笔 · <b>${store.currency}${fmtMoney(total)}</b></span>
+    </div>`;
   }
 
   function bindShell(): void {
@@ -355,6 +382,13 @@ export function mountBillApp(root: HTMLElement, store: LedgerStore, opts: AppOpt
     });
     root.querySelector<HTMLButtonElement>("[data-act=shot]")?.addEventListener("click", (e) => {
       captureView(e.currentTarget as HTMLButtonElement);
+    });
+    root.querySelector<HTMLButtonElement>("[data-act=search]")?.addEventListener("click", (e) => {
+      if (searchOpen) {
+        closePopovers();
+        return;
+      }
+      openSearch(e.currentTarget as HTMLElement);
     });
     root.querySelectorAll<HTMLButtonElement>("[data-period-nav]").forEach((btn) => {
       btn.addEventListener("click", () => {
@@ -414,10 +448,25 @@ export function mountBillApp(root: HTMLElement, store: LedgerStore, opts: AppOpt
 
   function renderFlow(host: HTMLElement): void {
     renderQuick(host, todayStr());
-    const txs = txsSorted(store, store.txs);
+    const txs = txsSorted(store, applyFlowFilter(store.txs));
     host.insertAdjacentHTML("beforeend", `<div id="flowList" class="flow-list-scroll"></div>`);
     const list = host.querySelector("#flowList") as HTMLElement;
-    renderGroupedList(list, txs, "还没有支出记录，从上方记第一笔");
+    renderGroupedList(list, txs, flowFilterActive() ? "没有符合筛选条件的记录" : "还没有支出记录，从上方记第一笔");
+  }
+
+  /** 筛选条件变化时，仅就地刷新流水列表与顶部计数，保持筛选弹层不关 */
+  function refreshFlowResults(): void {
+    if (view !== "flow") return;
+    const filtered = applyFlowFilter(store.txs);
+    const list = root.querySelector("#flowList") as HTMLElement | null;
+    if (list) {
+      renderGroupedList(list, txsSorted(store, filtered),
+        flowFilterActive() ? "没有符合筛选条件的记录" : "还没有支出记录，从上方记第一笔");
+    }
+    const total = filtered.reduce((s, t) => s + t.amount, 0);
+    const totalEl = root.querySelector(".flow-tools .top-total") as HTMLElement | null;
+    if (totalEl) totalEl.innerHTML = `共 ${filtered.length} 笔 · <b>${store.currency}${fmtMoney(total)}</b>`;
+    root.querySelector(".flow-search-btn")?.classList.toggle("on", flowFilterActive());
   }
 
   function renderPeriod(host: HTMLElement, dim: "week" | "month"): void {
@@ -1157,6 +1206,70 @@ export function mountBillApp(root: HTMLElement, store: LedgerStore, opts: AppOpt
     window.setTimeout(() => {
       document.addEventListener("mousedown", onOutsideClick, true);
     }, 0);
+  }
+
+  /** 流水多条件筛选弹层：关键词 / 分类 / 金额区间 / 日期区间，即时生效 */
+  function openSearch(anchorBtn: HTMLElement): void {
+    closePopovers();
+    const opts = [`<option value="__all__">全部分类</option>`]
+      .concat(store.cats.map((c) => `<option value="${esc(c.id)}">${esc(c.name)}</option>`))
+      .concat([`<option value="">未分类</option>`])
+      .join("");
+    const pop = document.createElement("div");
+    pop.className = "eb-popover search-pop";
+    pop.innerHTML = `
+      <div class="eb-pop-title">筛选流水</div>
+      <input class="anchor-input search-kw" type="text" placeholder="关键词（项目 / 备注）">
+      <select class="anchor-input search-cat">${opts}</select>
+      <div class="search-row">
+        <input class="anchor-input search-min" type="number" inputmode="decimal" placeholder="最低金额">
+        <span class="search-dash">–</span>
+        <input class="anchor-input search-max" type="number" inputmode="decimal" placeholder="最高金额">
+      </div>
+      <div class="search-row">
+        <input class="anchor-input search-start" type="date" title="起始日期">
+        <span class="search-dash">–</span>
+        <input class="anchor-input search-end" type="date" title="结束日期">
+      </div>
+      <div class="eb-pop-actions">
+        <button class="eb-btn ghost" data-reset type="button">重置</button>
+        <span class="eb-pop-spacer"></span>
+        <button class="eb-btn primary" data-done type="button">完成</button>
+      </div>`;
+
+    const kw = pop.querySelector(".search-kw") as HTMLInputElement;
+    const cat = pop.querySelector(".search-cat") as HTMLSelectElement;
+    const min = pop.querySelector(".search-min") as HTMLInputElement;
+    const max = pop.querySelector(".search-max") as HTMLInputElement;
+    const start = pop.querySelector(".search-start") as HTMLInputElement;
+    const end = pop.querySelector(".search-end") as HTMLInputElement;
+    // 回填当前筛选状态
+    kw.value = flowFilter.kw; cat.value = flowFilter.catId;
+    min.value = flowFilter.min; max.value = flowFilter.max;
+    start.value = flowFilter.start; end.value = flowFilter.end;
+
+    const sync = () => {
+      flowFilter.kw = kw.value;
+      flowFilter.catId = cat.value;
+      flowFilter.min = min.value;
+      flowFilter.max = max.value;
+      flowFilter.start = start.value;
+      flowFilter.end = end.value;
+      refreshFlowResults();
+    };
+    kw.addEventListener("input", sync);
+    cat.addEventListener("change", sync);
+    [min, max, start, end].forEach((el) => el.addEventListener("input", sync));
+
+    const close = mountPopover(pop, anchorBtn, () => { searchOpen = false; });
+    searchOpen = true;
+    pop.querySelector("[data-reset]")!.addEventListener("click", () => {
+      kw.value = ""; cat.value = "__all__"; min.value = ""; max.value = ""; start.value = ""; end.value = "";
+      sync();
+      kw.focus();
+    });
+    pop.querySelector("[data-done]")!.addEventListener("click", () => close());
+    kw.focus();
   }
 
   function closePopovers(): void {

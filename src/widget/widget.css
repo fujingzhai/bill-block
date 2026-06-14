@@ -100,6 +100,14 @@ body[data-view="flow"] #app { height: 100%; }
 .period-tools .top-total b {
   color: inherit; font-weight: 500;
 }
+/* 流水视图：搜索按钮贴在「共 X 笔」左侧 */
+.flow-tools {
+  display: flex; align-items: center; justify-content: flex-end; gap: 6px;
+  min-width: 0; flex: 0 1 auto; flex-wrap: nowrap; margin-left: auto;
+}
+.flow-tools .top-total { flex: 0 0 auto; white-space: nowrap; }
+.flow-search-btn.on { background: var(--accent); color: var(--card); opacity: 1; }
+.flow-search-btn.on:hover { background: var(--accent); color: var(--card); opacity: .85; }
 .stats-tools {
   display: flex; align-items: center; justify-content: flex-end; gap: 8px;
   min-width: 0; flex: 0 1 auto; flex-wrap: nowrap; margin-left: auto;
@@ -557,6 +565,15 @@ body.eb-capturing .tab-group button.on { border-color: var(--line) !important; }
 .eb-popover.anchor-pop {
   width: 312px;
 }
+.eb-popover.search-pop { width: 268px; gap: 7px; }
+.search-pop select.anchor-input {
+  appearance: none; cursor: pointer;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6' fill='none' stroke='%239b9a97' stroke-width='1.6' stroke-linecap='round'><path d='M1 1l4 4 4-4'/></svg>");
+  background-repeat: no-repeat; background-position: right 9px center; padding-right: 24px;
+}
+.search-row { display: flex; align-items: center; gap: 6px; }
+.search-row .anchor-input { flex: 1 1 0; min-width: 0; }
+.search-dash { color: var(--fg-faint); font-size: 12px; flex: 0 0 auto; }
 .eb-popover.inline-add {
   width: 220px;
   padding: 10px;
