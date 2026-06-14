@@ -15,20 +15,27 @@
   --danger: #e03e3e;
 }
 html.dark {
-  --fg: rgba(255, 255, 255, 0.86);
-  --fg-soft: rgba(255, 255, 255, 0.55);
-  --fg-faint: rgba(255, 255, 255, 0.38);
-  --line: rgba(255, 255, 255, 0.1);
-  --line-strong: rgba(255, 255, 255, 0.2);
-  --bar-rest: rgba(255, 255, 255, 0.2);
+  --fg: rgba(255, 255, 255, 0.90);
+  --fg-soft: rgba(255, 255, 255, 0.64);
+  --fg-faint: rgba(255, 255, 255, 0.42);
+  --line: rgba(255, 255, 255, 0.10);
+  --line-strong: rgba(255, 255, 255, 0.20);
+  --bar-rest: rgba(255, 255, 255, 0.18);
   --trend-line: rgba(255, 255, 255, 0.58);
   --heat-rgb: 210, 215, 222;
-  --accent: rgba(255, 255, 255, 0.82);
-  --hover: rgba(255, 255, 255, 0.08);
-  --card: #2f2f2f;
-  --shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
-  --overlay-shadow: 0 4px 24px rgba(0, 0, 0, 0.45), 0 0 0 1px rgba(255, 255, 255, 0.08);
+  --accent: rgba(255, 255, 255, 0.92);
+  --hover: rgba(255, 255, 255, 0.07);
+  --card: #2b2b2b;
+  /* 暗色下投影几乎不可见，用 1px 内嵌微边框承担「层级感」，
+     让所有 box-shadow:var(--shadow) 的元素（激活标签、卡片、聚焦态）都有清晰描边 */
+  --shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.08);
+  --overlay-shadow: 0 8px 28px rgba(0, 0, 0, 0.55), 0 0 0 1px rgba(255, 255, 255, 0.10);
+  --danger: #ef5350;
 }
+/* 暗色下原生日期选择图标默认是深色、贴在暗背景上几乎不可见，反相为浅色 */
+html.dark .q-date::-webkit-calendar-picker-indicator { filter: invert(1); opacity: .5; }
+/* 暗色下分类色点的描边改用浅色，避免深色描边在暗背景上糊掉 */
+html.dark .cm-row .dot { border-color: rgba(255, 255, 255, 0.14); }
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
 html, body { background: transparent; }

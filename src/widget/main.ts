@@ -1,6 +1,6 @@
 import { LedgerStore } from "../shared/store";
 import { getBlockAttrs } from "../shared/api";
-import { syncTheme } from "./theme";
+import { watchTheme } from "./theme";
 import { showError } from "./ui";
 import { mountBillApp, WEEK_ATTR, MONTH_ATTR, SORT_BY_ATTR, SORT_ORDER_ATTR } from "./views/app";
 import type { SortKey, SortDir } from "../shared/model";
@@ -28,7 +28,7 @@ function resolveBlockId(): string {
 }
 
 (async function init() {
-  syncTheme();
+  watchTheme();
 
   const store = new LedgerStore();
   try {
@@ -58,10 +58,6 @@ function resolveBlockId(): string {
 
   store.onRemoteChange = () => handle.render();
   store.startAutoRefresh();
-
-  document.addEventListener("visibilitychange", () => {
-    if (!document.hidden) syncTheme();
-  });
 
   // Cmd/Ctrl+Z 撤销最近一次账单操作
   document.addEventListener("keydown", async (e) => {

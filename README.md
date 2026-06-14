@@ -8,7 +8,7 @@ It is not a standalone finance app, and it is not a replacement for database vie
 
 Insert from the slash menu `/记账块` (also matches `记账`, `账单`, `jizhang`, `expense`, `ledger`) or the top-bar ¥ menu's "Insert Bill Block". Add as many as you like in any document. Each block carries four views, switched in place without interfering with each other:
 
-- **Flow**: a quick-entry row (amount → category → project → note → date → Enter) above a date-grouped, reverse-chronological stream of all transactions, with inline edit and delete. Flow is the only view that may show a scrollbar — its height matches the Week view and the list scrolls inside the block instead of stretching it.
+- **Flow**: a quick-entry row (amount → category → project → note → date → Enter) above a date-grouped, reverse-chronological stream of all transactions, with inline edit and delete. A search button left of the "N entries" total filters the stream by any mix of keyword, category, amount range, and date range. Flow is the only view that may show a scrollbar — its height matches the Week view and the list scrolls inside the block instead of stretching it.
 - **Week**: a Monday–Sunday seven-day board shaded by daily spending; click a day for details, click a cell's "+" or double-click an entry to record or edit in place. A category bar chart and a trend line chart sit below.
 - **Month**: a full-month calendar board with the same logic as Week; each cell shows up to three entries directly, collapsing the rest into "+N".
 - **Stats**: a horizontal category bar chart (with share, sortable by default / descending / ascending) and a trend line chart (by day / week / month / year, custom date range, multiple category series at once).
@@ -16,6 +16,9 @@ Insert from the slash menu `/记账块` (also matches `记账`, `账单`, `jizha
 ## Highlights
 
 - One ledger, synced live across multiple blocks and views, with no SiYuan database required.
+- Flow search: the Flow view supports multi-condition filtering — any mix of keyword (matching both project and note), category (all / a specific category / uncategorized), amount range, and date range — designed for "how much did I spend on X in total" lookbacks; filtering is instant and the popover stays open, with the entry count, total, and daily subtotals recomputed accordingly, and the search button highlighted while a filter is active.
+- Standalone expense panel: open an enlarged ledger from the top-bar ¥ menu, shown in a SiYuan tab with roomier font size, line height, and width over the same ledger — handy for staying put, reviewing, and entering in bulk; the panel's own default week / month and sorting apply only within the panel and never touch the bill blocks in your documents.
+- Follows SiYuan's theme: both embedded blocks and the standalone panel switch their palette live with SiYuan's light / dark theme, including automatic OS day/night switching.
 - New ledgers start with no preset categories, so each user can build their own category system from scratch.
 - The ledger lives in a standalone workspace file and syncs across devices via SiYuan's official cloud sync.
 - Flow, Week, and Month views all carry a quick-entry row; amount and project are required, category / note / date are optional.
