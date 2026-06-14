@@ -30,11 +30,13 @@ window.fetch = (async (input: RequestInfo | URL, init?: RequestInit) => {
 (async function init() {
   syncTheme();
   const root = document.getElementById("app") as HTMLElement;
-  const view = (new URLSearchParams(location.search).get("view") as "flow" | "week" | "month" | "stats") || "flow";
-  const dark = new URLSearchParams(location.search).get("dark") === "1";
+  const sp = new URLSearchParams(location.search);
+  const view = (sp.get("view") as "flow" | "week" | "month" | "stats") || "flow";
+  const dark = sp.get("dark") === "1";
+  const panel = sp.get("mode") === "panel";
   if (dark) document.documentElement.classList.add("dark");
   const store = new LedgerStore();
   await store.load();
-  const handle = mountBillApp(root, store, { initial: view });
+  const handle = mountBillApp(root, store, { initial: view, panel });
   store.onRemoteChange = () => handle.render();
 })();

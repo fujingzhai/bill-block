@@ -2,7 +2,7 @@
   "name": "bill-block",
   "author": "游夏",
   "url": "https://github.com/fujingzhai/bill-block",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "minAppVersion": "3.6.0",
   "backends": ["windows", "linux", "darwin"],
   "frontends": ["desktop", "desktop-window", "browser-desktop"],

@@ -55,6 +55,40 @@ body[data-view="flow"] #app { height: 100%; }
 .bill-shell.view-flow #viewHost { display: flex; flex-direction: column; flex: 1 1 auto; min-height: 0; }
 .bill-shell.view-flow .quick-card { flex: 0 0 auto; }
 .flow-list-scroll { flex: 1 1 auto; min-height: 0; overflow-y: auto; }
+
+/* ── 面板模式（独立标签页）：放大显示，居中限宽，填满高度、内部滚动 ──
+   高度用 100dvh 绑定 iframe 自身视口，避免 height:100% 在标签页 iframe 里解析不出
+   确定高度而回退到内容高度、与 flex 形成失控膨胀（表现为幻影滚动条+无限下滚）。 */
+html:has(body[data-mode="panel"]) { height: 100%; }
+body[data-mode="panel"] { height: 100%; margin: 0; padding: 0; overflow: hidden; }
+body[data-mode="panel"] #app { height: 100%; }
+body[data-mode="panel"] .bill-shell {
+  height: 100%; display: flex; flex-direction: column; box-sizing: border-box;
+  max-width: 1040px; margin: 0 auto; padding: 26px 34px 20px;
+}
+body[data-mode="panel"] .view-tabs { flex: 0 0 auto; }
+body[data-mode="panel"] #viewHost { flex: 1 1 auto; min-height: 0; overflow-y: auto; }
+/* 面板里流水列表已由 #viewHost 统一滚动，避免内层再套一层滚动条 */
+body[data-mode="panel"] .flow-list-scroll { overflow-y: visible; flex: 0 0 auto; }
+
+/* 面板放大：字号整体上调一档，行更高更疏，适配大面板、减少留白 */
+body[data-mode="panel"] { font-size: 14px; }
+body[data-mode="panel"] .tab-group button { font-size: 13.5px; height: 30px; }
+body[data-mode="panel"] .top-total { font-size: 14px; }
+body[data-mode="panel"] .icon-btn { width: 30px; height: 30px; }
+body[data-mode="panel"] .icon-btn svg { width: 16px; height: 16px; }
+body[data-mode="panel"] .quick-row { padding: 10px 12px; margin-bottom: 18px; }
+body[data-mode="panel"] .day-head { font-size: 13px; padding: 13px 2px 7px; }
+body[data-mode="panel"] .tx-row { font-size: 13.5px; padding: 8px 8px; }
+body[data-mode="panel"] .tx-cat,
+body[data-mode="panel"] .tx-row .tx-project,
+body[data-mode="panel"] .tx-row .tx-note,
+body[data-mode="panel"] .tx-row .tx-amt { font-size: 13.5px; }
+body[data-mode="panel"] .tx-row .dot { width: 9px; height: 9px; }
+body[data-mode="panel"] .tx-row .tx-project { max-width: 18em; }
+/* 周/月时间格与统计图表也随面板放大 */
+body[data-mode="panel"] .week-day, body[data-mode="panel"] .cal-cell { font-size: 13px; }
+body[data-mode="panel"] .stat-title, body[data-mode="panel"] .hbar, body[data-mode="panel"] .hbar b { font-size: 13px; }
 .bill-head {
   display: flex; align-items: center; justify-content: space-between; gap: 12px;
   margin-bottom: 10px;

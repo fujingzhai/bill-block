@@ -2,7 +2,8 @@ import { LedgerStore } from "../shared/store";
 import { getBlockAttrs } from "../shared/api";
 import { syncTheme } from "./theme";
 import { showError } from "./ui";
-import { mountBillApp, WEEK_ATTR, MONTH_ATTR } from "./views/app";
+import { mountBillApp, WEEK_ATTR, MONTH_ATTR, SORT_BY_ATTR, SORT_ORDER_ATTR } from "./views/app";
+import type { SortKey, SortDir } from "../shared/model";
 import { mountQuickAdd } from "./views/quickadd";
 
 export interface ViewHandle {
@@ -11,7 +12,9 @@ export interface ViewHandle {
 }
 
 const root = document.getElementById("app") as HTMLElement;
-const view = new URLSearchParams(location.search).get("view") || "ledger";
+const params = new URLSearchParams(location.search);
+const view = params.get("view") || "ledger";
+const panel = params.get("mode") === "panel";
 
 /** 取挂件所在块的 ID（用于读写本块的默认周/月等设置） */
 function resolveBlockId(): string {
@@ -46,7 +49,10 @@ function resolveBlockId(): string {
       initial,
       blockId,
       anchorWeek: attrs[WEEK_ATTR] || "",
-      anchorMonth: attrs[MONTH_ATTR] || ""
+      anchorMonth: attrs[MONTH_ATTR] || "",
+      sortBy: (attrs[SORT_BY_ATTR] as SortKey) || undefined,
+      sortOrder: (attrs[SORT_ORDER_ATTR] as SortDir) || undefined,
+      panel
     });
   }
 

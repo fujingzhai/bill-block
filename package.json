@@ -1,6 +1,6 @@
 {
   "name": "bill-block",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "description": "A SiYuan plugin for embedding editable bill ledger, stats and calendar blocks in documents.",
   "repository": "https://github.com/fujingzhai/bill-block",
   "homepage": "",

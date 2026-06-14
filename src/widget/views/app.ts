@@ -32,6 +32,9 @@ const HEIGHT_BUFFER = 18;
 /** 本块默认周（周一日期）与默认月（当月 1 号）写在块属性里，跨重载保留 */
 export const WEEK_ATTR = "custom-bill-week";
 export const MONTH_ATTR = "custom-bill-month";
+/** 排序按本实例（块/面板）独立保存，块写入块属性、面板仅内存；分类管理仍全局共享 */
+export const SORT_BY_ATTR = "custom-bill-sort-by";
+export const SORT_ORDER_ATTR = "custom-bill-sort-order";
 
 export interface AppOptions {
   initial?: MainView;
@@ -40,6 +43,12 @@ export interface AppOptions {
   anchorWeek?: string;
   /** 默认月的当月 1 号日期（YYYY-MM-DD），空表示未设定 */
   anchorMonth?: string;
+  /** 面板模式：在独立标签页里放大显示，填满高度、内部滚动，不向宿主块回写高度 */
+  panel?: boolean;
+  /** 本实例的排序键（块属性读入）；空则回退到全局默认 */
+  sortBy?: SortKey;
+  /** 本实例的排序方向（块属性读入）；空则回退到全局默认 */
+  sortOrder?: SortDir;
 }
 
 type MainView = "flow" | "week" | "month" | "stats";
@@ -126,9 +135,7 @@ function catName(store: LedgerStore, id: string): string {
  * - amount / created：按金额或创建时间，asc 升序 / desc 降序
  * 排序仅作用于「同一个时间格子」内（流水的每个日期分组、周/月的每个日格）。
  */
-function txsSorted(store: LedgerStore, txs: Tx[]): Tx[] {
-  const by = store.sortBy;
-  const dir = store.sortOrder;
+function txsSorted(store: LedgerStore, txs: Tx[], by: SortKey, dir: SortDir): Tx[] {
   const sign = dir === "asc" ? 1 : -1;
   const catOrder = (id: string): number => {
     const idx = store.cats.findIndex((c) => c.id === id);
@@ -187,6 +194,17 @@ function sortCats<T extends { name: string; amount: number }>(rows: T[], sort: S
 export function mountBillApp(root: HTMLElement, store: LedgerStore, opts: AppOptions = {}): ViewHandle {
   const initial = opts.initial ?? "flow";
   const blockId = opts.blockId || "";
+  const panel = !!opts.panel;
+  // 排序：本实例独立。块属性有就用块属性，否则回退到全局默认（旧数据迁移），再退到内置默认
+  let sortBy: SortKey = opts.sortBy || store.sortBy || "created";
+  let sortOrder: SortDir = opts.sortOrder || store.sortOrder || "desc";
+  /** 把本实例排序写回块属性（块）；面板无块、仅内存保留 */
+  function persistSort(): void {
+    if (!blockId) return;
+    setBlockAttrs(blockId, { [SORT_BY_ATTR]: sortBy, [SORT_ORDER_ATTR]: sortOrder }).catch(() => {
+      // 独立打开或离线时忽略
+    });
+  }
   let view: MainView = VIEWS.includes(initial) ? initial : "flow";
   // 默认周/月：块属性里有就用块属性，否则用本周/本月
   let defaultWeek = opts.anchorWeek ? periodStart(parseDate(opts.anchorWeek), "week") : periodStart(new Date(), "week");
@@ -249,6 +267,7 @@ export function mountBillApp(root: HTMLElement, store: LedgerStore, opts: AppOpt
     }
     if (managerOpen) return;
     document.body.dataset.view = view;
+    if (panel) document.body.dataset.mode = "panel";
     root.innerHTML = shellHtml();
     bindShell();
     const host = root.querySelector("#viewHost") as HTMLElement;
@@ -256,6 +275,8 @@ export function mountBillApp(root: HTMLElement, store: LedgerStore, opts: AppOpt
     else if (view === "week") renderPeriod(host, "week");
     else if (view === "month") renderPeriod(host, "month");
     else renderStats(host);
+    // 面板模式高度交给 CSS（填满标签页、内部滚动），不做离屏测高、不回写宿主块高度
+    if (panel) return;
     // 仅流水视图需要测量周账高度作为固定外框（内部滚动）；周/月/统计各按自身内容定高
     pairedHeight = view === "flow" ? measureViewHeight("week") : 0;
     applyHeight();
@@ -448,7 +469,7 @@ export function mountBillApp(root: HTMLElement, store: LedgerStore, opts: AppOpt
 
   function renderFlow(host: HTMLElement): void {
     renderQuick(host, todayStr());
-    const txs = txsSorted(store, applyFlowFilter(store.txs));
+    const txs = txsSorted(store, applyFlowFilter(store.txs), sortBy, sortOrder);
     host.insertAdjacentHTML("beforeend", `<div id="flowList" class="flow-list-scroll"></div>`);
     const list = host.querySelector("#flowList") as HTMLElement;
     renderGroupedList(list, txs, flowFilterActive() ? "没有符合筛选条件的记录" : "还没有支出记录，从上方记第一笔");
@@ -460,7 +481,7 @@ export function mountBillApp(root: HTMLElement, store: LedgerStore, opts: AppOpt
     const filtered = applyFlowFilter(store.txs);
     const list = root.querySelector("#flowList") as HTMLElement | null;
     if (list) {
-      renderGroupedList(list, txsSorted(store, filtered),
+      renderGroupedList(list, txsSorted(store, filtered, sortBy, sortOrder),
         flowFilterActive() ? "没有符合筛选条件的记录" : "还没有支出记录，从上方记第一笔");
     }
     const total = filtered.reduce((s, t) => s + t.amount, 0);
@@ -1089,7 +1110,7 @@ export function mountBillApp(root: HTMLElement, store: LedgerStore, opts: AppOpt
   function renderMiniList(host: HTMLElement, txs: Tx[], limit: number): void {
     const list = document.createElement("div");
     list.className = "mini-tx-list";
-    const rows = txsSorted(store, txs);
+    const rows = txsSorted(store, txs, sortBy, sortOrder);
     const visible = limit > 0 ? rows.slice(0, limit) : rows;
     for (const tx of visible) {
       list.appendChild(miniRow(tx));
@@ -1572,9 +1593,9 @@ export function mountBillApp(root: HTMLElement, store: LedgerStore, opts: AppOpt
     // Sort Controls Setup
     const sortItems = pop.querySelectorAll(".sort-section .sort-item");
     const updateSortUI = () => {
-      const currentBy = store.sortBy;
-      const currentDir = store.sortOrder;
-      
+      const currentBy = sortBy;
+      const currentDir = sortOrder;
+
       sortItems.forEach((itemEl) => {
         const item = itemEl as HTMLElement;
         const key = item.dataset.key as SortKey;
@@ -1616,22 +1637,25 @@ export function mountBillApp(root: HTMLElement, store: LedgerStore, opts: AppOpt
       const key = item.dataset.key as SortKey;
       
       const header = item.querySelector(".sort-item-header") as HTMLElement;
-      header.addEventListener("click", async (e) => {
+      header.addEventListener("click", (e) => {
         e.stopPropagation();
-        if (store.sortBy !== key) {
-          await store.setSortSettings(key, store.sortOrder);
+        if (sortBy !== key) {
+          sortBy = key;
+          persistSort();
           updateSortUI();
           render();
         }
       });
-      
+
       const subBtns = item.querySelectorAll(".sort-sub-btn");
       subBtns.forEach((btnEl) => {
         const btn = btnEl as HTMLButtonElement;
-        btn.addEventListener("click", async (e) => {
+        btn.addEventListener("click", (e) => {
           e.stopPropagation();
           const dir = btn.dataset.dir as SortDir;
-          await store.setSortSettings(key, dir);
+          sortBy = key;
+          sortOrder = dir;
+          persistSort();
           updateSortUI();
           render();
         });
@@ -1783,12 +1807,36 @@ export function mountBillApp(root: HTMLElement, store: LedgerStore, opts: AppOpt
   }
 
   render();
-  // 宽度等外部变化导致内容回流时，按缓存的配对高度重新贴合
-  try {
-    const app = document.getElementById("app");
-    if (app) new ResizeObserver(() => applyHeight()).observe(app);
-  } catch {
-    // 不支持 ResizeObserver 时退回到 render 内的显式调用
+  if (panel) {
+    // 面板：日期翻篇时把「默认周/月」推到当前。仅当用户此刻正停在原默认周/月上才平滑移动其视图；
+    // 若已翻到别处看账，则只悄悄更新默认目标（「回到默认」即真·今天），不打扰当前视图。只对面板生效，绝不碰块。
+    let lastToday = todayStr();
+    const checkDayRoll = (): void => {
+      const t = todayStr();
+      if (t === lastToday) return;
+      if (managerOpen || anchorOpen || searchOpen || editingId) return; // 有交互进行中，下个周期再推
+      lastToday = t;
+      const onDefaultWeek = periodStart(week, "week").getTime() === defaultWeek.getTime();
+      const onDefaultMonth = periodStart(month, "month").getTime() === defaultMonth.getTime();
+      defaultWeek = periodStart(new Date(), "week");
+      defaultMonth = periodStart(new Date(), "month");
+      if (onDefaultWeek) week = new Date(defaultWeek);
+      if (onDefaultMonth) month = new Date(defaultMonth);
+      if ((onDefaultWeek && view === "week") || (onDefaultMonth && view === "month")) {
+        selectedDate = todayStr();
+      }
+      render();
+    };
+    window.setInterval(checkDayRoll, 60000);
+    document.addEventListener("visibilitychange", () => { if (!document.hidden) checkDayRoll(); });
+  } else {
+    // 宽度等外部变化导致内容回流时，按缓存的配对高度重新贴合（仅嵌入块需要回写高度；面板靠 flex 填充，回写会破坏布局）
+    try {
+      const app = document.getElementById("app");
+      if (app) new ResizeObserver(() => applyHeight()).observe(app);
+    } catch {
+      // 不支持 ResizeObserver 时退回到 render 内的显式调用
+    }
   }
   return { render };
 }

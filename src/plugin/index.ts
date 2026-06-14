@@ -1,6 +1,7 @@
-import { Dialog, Menu, Plugin, Protyle, fetchPost, getActiveEditor, getAllEditor, showMessage } from "siyuan";
+import { Dialog, Menu, Plugin, Protyle, fetchPost, getActiveEditor, getAllEditor, openTab, showMessage } from "siyuan";
 
 const BLOCK_HEIGHT = 520;
+const PANEL_TAB = "billPanel";
 
 interface ApiResponse<T = unknown> {
   code: number;
@@ -41,6 +42,19 @@ export default class BillBlockPlugin extends Plugin {
       title: "记账块",
       position: "right",
       callback: (event) => this.openTopBarMenu(event)
+    });
+
+    // 独立记账面板：在标签页里放大显示同一套挂件（mode=panel）。
+    // 用 SiYuan 的 flex 填充类（fn__flex* ）让 iframe 从确定高度的标签页拿到确定高度，
+    // 避免 iframe 在 height:100% 下解析不出高度而跟随内容无限膨胀。
+    this.addTab({
+      type: PANEL_TAB,
+      init() {
+        this.element.innerHTML = `<div class="fn__flex fn__flex-column fn__flex-1">
+          <iframe class="fn__flex-1" allowfullscreen src="/plugins/bill-block/widget/index.html?mode=panel"
+            style="border:0;width:100%;min-height:0;display:block;background:transparent;"></iframe>
+        </div>`;
+      }
     });
 
     this.protyleSlash = [{
@@ -105,6 +119,18 @@ export default class BillBlockPlugin extends Plugin {
     this.quickDialog = null;
   }
 
+  private openPanel() {
+    openTab({
+      app: this.app,
+      custom: {
+        id: this.name + PANEL_TAB,
+        icon: "iconBillBlock",
+        title: "记账",
+        data: {}
+      }
+    });
+  }
+
   private openTopBarMenu(event: MouseEvent) {
     const context = getCurrentContext();
     const menu = new Menu("bill-block-topbar");
@@ -119,6 +145,12 @@ export default class BillBlockPlugin extends Plugin {
       icon: "iconBillBlock",
       label: "插入记账块",
       click: () => this.insertAtCursor(context)
+    });
+    menu.addSeparator();
+    menu.addItem({
+      icon: "iconBillBlock",
+      label: "打开记账面板",
+      click: () => this.openPanel()
     });
     const rect = this.menuAnchorRect(event);
     menu.open({ x: rect.left, y: rect.bottom, w: rect?.width, h: rect?.height });
