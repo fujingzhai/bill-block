@@ -29,6 +29,7 @@ Insert from the slash menu `/记账块` (also matches `记账`, `账单`, `jizha
 - The category bar chart shows every category by default; enable "Hide categories with no spending" in the category manager to show only categories with spending in the current period.
 - Two-level category management: add, rename, recolor, drag-reorder, and delete (deleted categories' entries fall back to "Uncategorized"); a 10-color palette, a color picker, and `#RRGGBB` hex input are all available.
 - A global hotkey `Option+Command+B` (configurable in SiYuan settings) opens "Add bill" anywhere; the top-bar ¥ menu can also add one quickly.
+- When focus is inside a bill block or the standalone expense panel, press `B` to open Add Bill as well; text inputs do not trigger this shortcut.
 - Each view can export its current state to a PNG from the top-right corner; transient controls are hidden during export, and Desktop is preferred as the save location.
 - Use `Cmd/Ctrl+Z` to undo the previous ledger operation (up to 50 steps).
 

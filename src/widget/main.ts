@@ -15,6 +15,7 @@ const root = document.getElementById("app") as HTMLElement;
 const params = new URLSearchParams(location.search);
 const view = params.get("view") || "ledger";
 const panel = params.get("mode") === "panel";
+const UI_CHANNEL = "bill-block-ui";
 
 /** 取挂件所在块的 ID（用于读写本块的默认周/月等设置） */
 function resolveBlockId(): string {
@@ -25,6 +26,41 @@ function resolveBlockId(): string {
   } catch {
     return "";
   }
+}
+
+function isEditableTarget(target: EventTarget | null): boolean {
+  const el = target instanceof HTMLElement ? target : null;
+  if (!el) return false;
+  const tag = el.tagName.toLowerCase();
+  return tag === "input" || tag === "textarea" || tag === "select" || el.isContentEditable;
+}
+
+function postUiMessage(message: Record<string, unknown>): void {
+  try {
+    const channel = new BroadcastChannel(UI_CHANNEL);
+    channel.postMessage(message);
+    channel.close();
+  } catch {
+    // BroadcastChannel 不可用时忽略
+  }
+}
+
+function isQuickAddShortcut(event: KeyboardEvent): boolean {
+  return !event.metaKey
+    && !event.altKey
+    && !event.ctrlKey
+    && !event.shiftKey
+    && event.key.toLowerCase() === "b";
+}
+
+function installQuickAddShortcutBridge(): void {
+  document.addEventListener("keydown", (event) => {
+    if (isEditableTarget(event.target)) return;
+    if (!isQuickAddShortcut(event)) return;
+    event.preventDefault();
+    event.stopPropagation();
+    postUiMessage({ type: "quickadd-open" });
+  }, true);
 }
 
 (async function init() {
@@ -42,6 +78,7 @@ function resolveBlockId(): string {
   if (view === "quickadd") {
     handle = mountQuickAdd(root, store);
   } else {
+    installQuickAddShortcutBridge();
     const initial = view === "calendar" ? "month" : view === "stats" ? "stats" : "flow";
     const blockId = resolveBlockId();
     const attrs = blockId ? await getBlockAttrs(blockId) : {};

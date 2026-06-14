@@ -89,6 +89,8 @@ export default class BillBlockPlugin extends Plugin {
           this.closeQuickAdd();
         } else if (msg.type === "quickadd-cancel") {
           this.closeQuickAdd();
+        } else if (msg.type === "quickadd-open") {
+          this.openQuickAdd();
         }
       };
     } catch {
