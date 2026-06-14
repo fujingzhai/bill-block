@@ -84,6 +84,7 @@ export class LedgerStore {
     this.snapshot();
     const full: Tx = { ...tx, id: genId(), created: Date.now() };
     this.data.transactions.push(full);
+    this.rememberCat(tx.catId);
     await this.persist();
     return full;
   }
@@ -93,6 +94,7 @@ export class LedgerStore {
     if (!tx) return;
     this.snapshot();
     Object.assign(tx, patch);
+    if (patch.catId !== undefined) this.rememberCat(patch.catId);
     await this.persist();
   }
   async removeTx(id: string): Promise<void> {
@@ -123,6 +125,11 @@ export class LedgerStore {
   /** 分类显示名：二级分类带上父级前缀 */
   catLabel(catId: string): string {
     return this.cat(catId).name;
+  }
+  get lastCatId(): string | undefined {
+    const id = this.data.lastCatId;
+    if (id === "") return "";
+    return id && this.cat(id).id ? id : undefined;
   }
   async addCategory(name: string, color: string, parentId: string | null): Promise<Category> {
     this.ensureWritable();
@@ -158,6 +165,7 @@ export class LedgerStore {
     for (const tx of this.txs) {
       if (dead.has(tx.catId)) tx.catId = "";
     }
+    if (this.data.lastCatId && dead.has(this.data.lastCatId)) this.data.lastCatId = undefined;
     await this.persist();
   }
 
@@ -255,6 +263,13 @@ export class LedgerStore {
         parentId: null,
         color: normalizeCategoryColor(cat.color, idx)
       }));
+    if (this.data.lastCatId && !this.data.categories.some((cat) => cat.id === this.data.lastCatId)) {
+      this.data.lastCatId = undefined;
+    }
+  }
+
+  private rememberCat(catId: string): void {
+    this.data.lastCatId = this.cat(catId).id ? catId : "";
   }
 
   private async persist(): Promise<void> {

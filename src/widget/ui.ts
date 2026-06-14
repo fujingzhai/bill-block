@@ -215,7 +215,12 @@ export function txForm(
 }
 
 function defaultCatId(store: LedgerStore): string {
-  const last = store.txs[store.txs.length - 1];
+  const remembered = store.lastCatId;
+  if (remembered !== undefined) return remembered;
+  const last = store.txs.reduce<Tx | undefined>((best, tx) => {
+    if (!best) return tx;
+    return (tx.created || 0) > (best.created || 0) ? tx : best;
+  }, undefined);
   if (last && store.cat(last.catId).id) return last.catId;
   const first = store.catTree()[0];
   return first ? first.parent.id : "";

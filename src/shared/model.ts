@@ -33,6 +33,8 @@ export interface LedgerData {
   transactions: Tx[];
   /** 分类图是否隐藏本期无支出的分类，默认 false（全部显示） */
   hideEmptyCats?: boolean;
+  /** 最近一次用于新增/编辑账目的分类；空字符串表示未分类 */
+  lastCatId?: string;
   sortBy?: SortKey;
   sortOrder?: SortDir;
 }
