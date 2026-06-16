@@ -195,15 +195,43 @@ export function mountBillApp(root: HTMLElement, store: LedgerStore, opts: AppOpt
   const initial = opts.initial ?? "flow";
   const blockId = opts.blockId || "";
   const panel = !!opts.panel;
-  // 排序：本实例独立。块属性有就用块属性，否则回退到全局默认（旧数据迁移），再退到内置默认
-  let sortBy: SortKey = opts.sortBy || store.sortBy || "created";
-  let sortOrder: SortDir = opts.sortOrder || store.sortOrder || "desc";
-  /** 把本实例排序写回块属性（块）；面板无块、仅内存保留 */
+  // 排序：每个实例（块/面板）各自独立，互不影响，且记住自己的选择。
+  // - 记账块：读写自己的块属性（main.ts 已把块属性读入 opts.sortBy/sortOrder）。
+  // - 独立面板：无块可挂，存到 localStorage 的面板专用键，跨重开保留。
+  // - 都没有时回退到内置默认（按创建时间降序，新的在前）；不再沿用旧的全局排序，
+  //   避免某处改了排序、别处也跟着变，也不再强制金额降序。
+  const DEFAULT_SORT_BY: SortKey = "created";
+  const DEFAULT_SORT_DIR: SortDir = "desc";
+  const PANEL_SORT_BY_KEY = "bill-block-panel-sort-by";
+  const PANEL_SORT_DIR_KEY = "bill-block-panel-sort-order";
+  function readPanelSort(): { by?: SortKey; dir?: SortDir } {
+    if (!panel) return {};
+    try {
+      return {
+        by: (localStorage.getItem(PANEL_SORT_BY_KEY) as SortKey) || undefined,
+        dir: (localStorage.getItem(PANEL_SORT_DIR_KEY) as SortDir) || undefined
+      };
+    } catch {
+      return {};
+    }
+  }
+  const panelSort = readPanelSort();
+  let sortBy: SortKey = opts.sortBy || panelSort.by || DEFAULT_SORT_BY;
+  let sortOrder: SortDir = opts.sortOrder || panelSort.dir || DEFAULT_SORT_DIR;
+  /** 把本实例排序写回：记账块→块属性；面板→localStorage；都没有则仅本次内存 */
   function persistSort(): void {
-    if (!blockId) return;
-    setBlockAttrs(blockId, { [SORT_BY_ATTR]: sortBy, [SORT_ORDER_ATTR]: sortOrder }).catch(() => {
-      // 独立打开或离线时忽略
-    });
+    if (blockId) {
+      setBlockAttrs(blockId, { [SORT_BY_ATTR]: sortBy, [SORT_ORDER_ATTR]: sortOrder }).catch(() => {
+        // 独立打开或离线时忽略
+      });
+    } else if (panel) {
+      try {
+        localStorage.setItem(PANEL_SORT_BY_KEY, sortBy);
+        localStorage.setItem(PANEL_SORT_DIR_KEY, sortOrder);
+      } catch {
+        // localStorage 不可用时忽略
+      }
+    }
   }
   let view: MainView = VIEWS.includes(initial) ? initial : "flow";
   // 默认周/月：块属性里有就用块属性，否则用本周/本月
